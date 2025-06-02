@@ -35,7 +35,7 @@ variable tags {
         "Owner" = "ExamPro.co",
         "BoundedContext" = "Network Fundatmentals Bootcamp"
         "ManagedBy" = "Terraform"
-        "Environment" = "Non-Produciton"
+        "Environment" = "Staging"
         "Region" = "ca-central-1"
     }
 }
