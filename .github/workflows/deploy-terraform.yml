@@ -1,0 +1,254 @@
+name: 'Terraform CI/CD Deployment Pipeline'
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  deploy_aws_terraform:
+    name: 'Deploys Network Solution to AWS using Terraform'
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: latest
+
+    - name: Terraform Init
+      run: terraform init
+
+    - name: Terraform Format
+      run: terraform fmt -check
+
+    - name: Terraform Validate
+      run: terraform validate
+
+    - name: tfsec
+      uses: aquasecurity/tfsec-action@v1.0.0
+      with:
+        soft_fail: true
+
+    - name: Setup Infracost
+      uses: infracost/actions/setup@v2
+      with:
+        api-key: ${{ secrets.INFRACOST_API_KEY }}
+
+    - name: Generate Infracost cost estimate
+      run: |
+        infracost breakdown --path=.
+        infracost output --path=infracost-base.json --format=json > infracost.json
+
+    - name: Terraform Plan
+      id: plan
+      run: terraform plan -no-color -out=tfplan
+      continue-on-error: true
+
+    - name: Show Plan
+      run: terraform show -no-color tfplan > plan.txt
+
+    - name: Add Plan & Cost to PR
+      uses: actions/github-script@v6
+      if: github.event_name == 'pull_request'
+      env:
+        PLAN: "${{ steps.plan.outputs.stdout }}"
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const fs = require('fs');
+          const plan = fs.readFileSync('plan.txt', 'utf8');
+          const infracost = require('./infracost.json');
+          
+          const costEstimate = `Monthly cost estimate: ${infracost.totalMonthlyCost} USD`;
+          
+          const output = `#### Terraform Plan 📝\`${{ steps.plan.outcome }}\`
+          
+          ${costEstimate}
+          
+          <details><summary>Show Plan</summary>
+          
+          \`\`\`terraform
+          ${plan}
+          \`\`\`
+          
+          </details>`;
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: output
+          })
+
+    - name: Terraform Apply
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      run: terraform apply -auto-approve tfplan
+
+  deploy_azure_terraform:
+    name: 'Deploys Network Solution to Azure using Terraform'
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: latest
+
+    - name: Terraform Init
+      run: terraform init
+
+    - name: Terraform Format
+      run: terraform fmt -check
+
+    - name: Terraform Validate
+      run: terraform validate
+
+    - name: tfsec
+      uses: aquasecurity/tfsec-action@v1.0.0
+      with:
+        soft_fail: true
+
+    - name: Setup Infracost
+      uses: infracost/actions/setup@v2
+      with:
+        api-key: ${{ secrets.INFRACOST_API_KEY }}
+
+    - name: Generate Infracost cost estimate
+      run: |
+        infracost breakdown --path=.
+        infracost output --path=infracost-base.json --format=json > infracost.json
+
+    - name: Terraform Plan
+      id: plan
+      run: terraform plan -no-color -out=tfplan
+      continue-on-error: true
+
+    - name: Show Plan
+      run: terraform show -no-color tfplan > plan.txt
+
+    - name: Add Plan & Cost to PR
+      uses: actions/github-script@v6
+      if: github.event_name == 'pull_request'
+      env:
+        PLAN: "${{ steps.plan.outputs.stdout }}"
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const fs = require('fs');
+          const plan = fs.readFileSync('plan.txt', 'utf8');
+          const infracost = require('./infracost.json');
+          
+          const costEstimate = `Monthly cost estimate: ${infracost.totalMonthlyCost} USD`;
+          
+          const output = `#### Terraform Plan 📝\`${{ steps.plan.outcome }}\`
+          
+          ${costEstimate}
+          
+          <details><summary>Show Plan</summary>
+          
+          \`\`\`terraform
+          ${plan}
+          \`\`\`
+          
+          </details>`;
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: output
+          })
+
+    - name: Terraform Apply
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      run: terraform apply -auto-approve tfplan
+
+  deploy_gcp_terraform:
+    name: 'Deploys Network Solution to GCP using Terraform'
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: latest
+
+    - name: Terraform Init
+      run: terraform init
+
+    - name: Terraform Format
+      run: terraform fmt -check
+
+    - name: Terraform Validate
+      run: terraform validate
+
+    - name: tfsec
+      uses: aquasecurity/tfsec-action@v1.0.0
+      with:
+        soft_fail: true
+
+    - name: Setup Infracost
+      uses: infracost/actions/setup@v2
+      with:
+        api-key: ${{ secrets.INFRACOST_API_KEY }}
+
+    - name: Generate Infracost cost estimate
+      run: |
+        infracost breakdown --path=.
+        infracost output --path=infracost-base.json --format=json > infracost.json
+
+    - name: Terraform Plan
+      id: plan
+      run: terraform plan -no-color -out=tfplan
+      continue-on-error: true
+
+    - name: Show Plan
+      run: terraform show -no-color tfplan > plan.txt
+
+    - name: Add Plan & Cost to PR
+      uses: actions/github-script@v6
+      if: github.event_name == 'pull_request'
+      env:
+        PLAN: "${{ steps.plan.outputs.stdout }}"
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const fs = require('fs');
+          const plan = fs.readFileSync('plan.txt', 'utf8');
+          const infracost = require('./infracost.json');
+          
+          const costEstimate = `Monthly cost estimate: ${infracost.totalMonthlyCost} USD`;
+          
+          const output = `#### Terraform Plan 📝\`${{ steps.plan.outcome }}\`
+          
+          ${costEstimate}
+          
+          <details><summary>Show Plan</summary>
+          
+          \`\`\`terraform
+          ${plan}
+          \`\`\`
+          
+          </details>`;
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: output
+          })
+
+    - name: Terraform Apply
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      run: terraform apply -auto-approve tfplan
