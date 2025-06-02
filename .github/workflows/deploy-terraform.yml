@@ -41,7 +41,7 @@ jobs:
 
     - name: Generate Infracost cost estimate
       run: |
-        infracost breakdown --path=.
+        infracost breakdown --path /code --format json --out-file infracost-base.json
         infracost output --path=infracost-base.json --format=json > infracost.json
 
     - name: Terraform Plan
