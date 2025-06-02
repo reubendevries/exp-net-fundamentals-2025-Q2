@@ -7,7 +7,7 @@ on:
     branches: [ "main" ]
 
 jobs:
-  deploy_aws_terraform:
+  deploy_network_terraform:
     name: 'Deploys Network Solution to AWS using Terraform'
     runs-on: ubuntu-latest
     
