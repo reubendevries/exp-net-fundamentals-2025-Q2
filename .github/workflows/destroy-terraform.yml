@@ -1,0 +1,65 @@
+name: Terraform Destroy
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  terraform-destroy:
+    runs-on: ubuntu-latest
+    if: github.event.inputs.confirmation == 'destroy'
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: arn:aws:iam::468260221093:role/exp-net-fundamentals-deploy-gha-role
+        aws-region: ca-central-1
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: latest
+
+    - name: Terraform Init
+      run: terraform init
+
+    - name: Terraform Validate
+      run: terraform validate
+
+    - name: Terraform Plan Destroy
+      run: terraform plan -destroy -out=tfdestroyplan
+
+    - name: Terraform Destroy
+      run: terraform destroy -auto-approve
+      
+    - name: Create GitHub Issue with Destroy Results
+      if: always()
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const result = process.env.WORKFLOW_RESULT === 'success' ? '✅ Successful' : '❌ Failed';
+          github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: `Terraform Destroy ${result}`,
+            body: `
+            # Terraform Destroy Results
+            
+            - **Environment**: ${process.env.ENVIRONMENT}
+            - **Triggered by**: @${{ github.actor }}
+            - **Workflow run**: [View Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            - **Status**: ${result}
+            - **Timestamp**: ${new Date().toISOString()}
+            `
+          });
+      env:
+        WORKFLOW_RESULT: ${{ job.status }}
