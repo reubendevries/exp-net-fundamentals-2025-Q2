@@ -1,13 +1,11 @@
 <!-- BEGIN_TF_DOCS -->
-# exp-net-fundamentals-2025-q2
+## Infrastructure Diagram
+![Infrastructure Diagram](infrastructure-diagram.png)
 
-  ## Infrastructure Diagram
-  [Infrastructure Diagram](infrastructure-diagram.drawio)
+## Usage
 
-  ## Usage
-
-  ```hcl
-  resource "aws_vpc" "network_fundamentals_vpc" {
+```hcl
+resource "aws_vpc" "network_fundamentals_vpc" {
   cidr_block                       = local.vpc_cidr
   enable_dns_support               = true
   enable_dns_hostnames             = true
@@ -40,7 +38,7 @@ resource "aws_subnet" "private_subnet" {
     "Name" = format("%s Private Subnet - %s", local.environment_name, each.key)
   }, local.tags)
 }
-  variable "availability_zone" {
+variable "availability_zone" {
   description = "Availability Zone"
   type        = list(string)
   default     = ["ca-central-1a", "ca-central-1b", "ca-central-1c"]
@@ -87,23 +85,23 @@ variable "vpc_cidr" {
   type        = string
   default     = "10.0.0.0/16"
 }
-  ```
+```
 
-  ## Requirements
+## Requirements
 
 No requirements.
 
-  ## Providers
+## Providers
 
 | Name | Version |
 |------|---------|
 | <a name="provider_aws"></a> [aws](#provider\_aws) | n/a |
 
-  ## Modules
+## Modules
 
 No modules.
 
-  ## Resources
+## Resources
 
 | Name | Type |
 |------|------|
@@ -111,7 +109,7 @@ No modules.
 | [aws_subnet.public_subnet](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet) | resource |
 | [aws_vpc.network_fundamentals_vpc](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc) | resource |
 
-  ## Inputs
+## Inputs
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
@@ -123,7 +121,7 @@ No modules.
 | <a name="input_tags"></a> [tags](#input\_tags) | n/a | `map(string)` | <pre>{<br/>  "BoundedContext": "Network Fundatmentals Bootcamp",<br/>  "Environment": "Staging",<br/>  "ManagedBy": "Terraform",<br/>  "Owner": "ExamPro.co",<br/>  "Region": "ca-central-1"<br/>}</pre> | no |
 | <a name="input_vpc_cidr"></a> [vpc\_cidr](#input\_vpc\_cidr) | CIDR for VPC | `string` | `"10.0.0.0/16"` | no |
 
-  ## Outputs
+## Outputs
 
 | Name | Description |
 |------|-------------|
@@ -133,5 +131,4 @@ No modules.
 | <a name="output_vpc_id"></a> [vpc\_id](#output\_vpc\_id) | The ID of the VPC |
 | <a name="output_vpc_ipv6_cidr_block"></a> [vpc\_ipv6\_cidr\_block](#output\_vpc\_ipv6\_cidr\_block) | The IPv6 CIDR block of the VPC |
 
-  
 <!-- END_TF_DOCS -->
