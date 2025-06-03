@@ -48,8 +48,7 @@ jobs:
         terraform plan -out=tfplan
         terraform show -json tfplan > tfplan.json
 
-    # Generate markdown documentation with terraform-docs
-    - name: Render terraform docs
+    - name: Render Terraform Docs
       uses: terraform-docs/gh-actions@v1.0.0
       with:
         working-dir: .
@@ -58,57 +57,6 @@ jobs:
         git-push: "true"
         git-commit-message: "docs: update terraform documentation"
 
-    # Alternative: Generate docs to separate file
-    - name: Generate terraform docs to separate file
-      uses: terraform-docs/gh-actions@v1.0.0
-      with:
-        working-dir: .
-        output-file: TERRAFORM.md
-        output-method: replace
-        config-file: .terraform-docs.yml
-
-    # Install and use Inframap for visual diagrams
-    - name: Setup Inframap
-      run: |
-        curl -sSL https://github.com/cycloidio/inframap/releases/download/v0.6.7/inframap-linux-amd64.tar.gz | tar -xz
-        sudo mv inframap-linux-amd64 /usr/local/bin/inframap
-        chmod +x /usr/local/bin/inframap
-
-    - name: Generate Infrastructure Diagram
-      run: |
-        # Generate diagram from Terraform state (if you have remote state)
-        # inframap generate --tfstate terraform.tfstate --output diagram.svg
-        
-        # Generate diagram from Terraform plan JSON
-        inframap generate --tfplan tfplan.json --output infrastructure-diagram.svg
-        
-        # Generate different formats
-        inframap generate --tfplan tfplan.json --output infrastructure-diagram.png
-        inframap generate --tfplan tfplan.json --output infrastructure-diagram.dot
-
-    # Alternative: Use Rover for interactive diagrams
-    - name: Setup Rover
-      run: |
-        wget https://github.com/im2nguyen/rover/releases/download/v0.3.3/rover_0.3.3_linux_amd64.tar.gz
-        tar -xzf rover_0.3.3_linux_amd64.tar.gz
-        sudo mv rover /usr/local/bin/
-
-    - name: Generate Interactive Diagram with Rover
-      run: |
-        rover --tfPlanFile tfplan.json --outputFile rover-diagram.html
-
-    # Setup Python for additional diagram tools
-    - name: Setup Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'
-
-    - name: Install Python dependencies
-      run: |
-        pip install diagrams
-        pip install graphviz
-
-    # Custom Python script for Draw.io compatible diagrams
     - name: Generate Draw.io Compatible Diagram
       run: |
         python << 'EOF'
@@ -168,30 +116,20 @@ jobs:
         print("Draw.io diagram generated successfully!")
         EOF
 
-    # Commit generated files back to repository
     - name: Commit generated diagrams
       run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git add *.svg *.png *.html *.drawio *.md
+        git config --local user.email "reubendevriesn@gmail.com"
+        git config --local user.name "Reuben deVries"
+        git add infrastructure-diagram.drawio
         git diff --staged --quiet || git commit -m "docs: update terraform diagrams and documentation"
         git push
 
-    # Upload artifacts for download
     - name: Upload Documentation and Diagrams
       uses: actions/upload-artifact@v4
       with:
         name: terraform-docs-and-diagrams
-        path: |
-          README.md
-          TERRAFORM.md
-          *.svg
-          *.png
-          *.html
-          *.drawio
-          *.dot
+        path: infrastructure-diagram.drawio
 
-  # Optional: Deploy documentation to GitHub Pages
   deploy-docs:
     needs: terraform-docs
     runs-on: ubuntu-latest
