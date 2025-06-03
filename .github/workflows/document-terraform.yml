@@ -48,14 +48,17 @@ jobs:
         terraform plan -out=tfplan
         terraform show -json tfplan > tfplan.json
 
-    - name: Render Terraform Docs
-      uses: terraform-docs/gh-actions@v1.0.0
-      with:
-        working-dir: .
-        output-file: README.md
-        output-method: inject
-        git-push: "true"
-        git-commit-message: "docs: update terraform documentation"
+    - name: Install terraform-docs
+      run: |
+        curl -sSLo ./terraform-docs.tar.gz https://terraform-docs.io/dl/v0.16.0/terraform-docs-v0.16.0-$(uname)-amd64.tar.gz
+        tar -xzf terraform-docs.tar.gz
+        chmod +x terraform-docs
+        sudo mv terraform-docs /usr/local/bin/
+    
+    - name: Generate Terraform Docs
+      run: |
+        terraform-docs markdown table --output-file README.md --output-mode inject .
+        terraform-docs markdown table --output-file modules/aws-basic-network/README.md --output-mode inject ./modules/aws-basic-network
 
     - name: Generate Draw.io Compatible Diagram
       run: |
@@ -116,16 +119,13 @@ jobs:
         print("Draw.io diagram generated successfully!")
         EOF
 
-    - name: Commit generated diagrams
+    - name: Commit all generated files
       run: |
-        cp infrastructure-diagram.drawio infrastructure-diagram.drawio.tmp
-        git checkout ${GITHUB_REF#refs/heads/}
-        cp infrastructure-diagram.drawio.tmp infrastructure-diagram.drawio
         git config --global user.name 'GitHub Actions'
         git config --global user.email 'actions@github.com'
-        git add infrastructure-diagram.drawio
-        git diff --staged --quiet || git commit -m "docs: update terraform diagrams"
-        git push
+        git add README.md modules/aws-basic-network/README.md infrastructure-diagram.drawio
+        git diff --staged --quiet || git commit -m "docs: update terraform documentation and diagrams"
+        git push origin HEAD:${GITHUB_REF#refs/heads/}
 
     - name: Upload Documentation and Diagrams
       uses: actions/upload-artifact@v4
