@@ -19,6 +19,13 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: arn:aws:iam::468260221093:role/exp-net-fundamentals-deploy-gha-role
+        aws-region: ca-central-1
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
