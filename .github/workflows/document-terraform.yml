@@ -24,6 +24,7 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         fetch-depth: 0
+        persist-credentials: false
     
     - uses: aws-actions/configure-aws-credentials@v4
       with:
@@ -118,12 +119,10 @@ jobs:
         EOF
 
     - name: Commit generated diagrams and docs
-      run: |
-        git config --local user.email "reubendevriesn@gmail.com"
-        git config --local user.name "Reuben deVries"
-        git add infrastructure-diagram.drawio README.md
-        git diff --staged --quiet || git commit -m "docs: update terraform diagrams and documentation"
-        git push origin HEAD:${GITHUB_REF#refs/heads/}
+      uses: stefanzweifel/git-auto-commit-action@v5
+      with:
+        commit_message: "docs: update terraform diagrams and documentation"
+        file_pattern: 'infrastructure-diagram.drawio README.md'
 
     - name: Upload Documentation and Diagrams
       uses: actions/upload-artifact@v4
