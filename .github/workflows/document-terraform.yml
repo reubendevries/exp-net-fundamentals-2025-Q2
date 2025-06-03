@@ -47,15 +47,7 @@ jobs:
       run: |
         terraform plan -out=tfplan
         terraform show -json tfplan > tfplan.json
-
-    - name: Render terraform docs inside the README.md and push changes back to PR branch
-      uses: terraform-docs/gh-actions@v1.4.1
-      with:
-        working-dir: .
-        output-file: README.md
-        output-method: inject
-        git-push: "true"
-
+    
     - name: Generate Draw.io Diagram and PNG Image
       run: |
         
@@ -121,23 +113,22 @@ jobs:
 
         echo "Diagram conversion complete. PNG file created."
 
-    - name: Commit all generated files
+    - name: Render terraform docs inside the README.md and push changes back to PR branch
+      uses: terraform-docs/gh-actions@v1.4.1
+      with:
+        working-dir: .
+        output-file: README.md
+        output-method: inject
+        git-push: "true"
+
+    - name: Commit changes
+      uses: EndBug/add-and-commit@v9
+      with:
+        add: 'README.md infrastructure-diagram.png'
+        message: 'docs: update terraform documentation and diagrams'
+        default_author: github_actions
+        push: true
       if: github.event_name != 'pull_request'
-      run: |
-        
-        git config --global user.name 'github-actions[bot]'
-        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-
-        git remote set-url origin https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}
-
-        git add README.md infrastructure-diagram.png
-
-        if git diff --staged --quiet; then
-          echo "No changes to commit"
-        else
-          git commit -m "docs: update terraform documentation and diagrams"
-          git push
-        fi
 
     - name: Upload Documentation and Diagrams
       uses: actions/upload-artifact@v4
