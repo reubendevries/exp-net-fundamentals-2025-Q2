@@ -1,5 +1,3 @@
-
-# exp-net-fundamentals-2025-q2
 <!-- BEGIN_TF_DOCS -->
 # exp-net-fundamentals-2025-q2
 
@@ -9,27 +7,40 @@
   ## Usage
 
   ```hcl
-  module "aws-basic-network" {
-  // source
-  source = "./modules/aws-basic-network"
-  // variables
-  availability_zone   = ["ca-central-1a", "ca-central-1b", "ca-central-1c"]
-  aws_region          = "ca-central-1"
-  environment_name    = "Networking Fundatamental Bootcamp"
-  private_subnet_cidr = ["10.10.21.0/24", "10.10.22.0/24", "10.10.23.0/24"]
-  public_subnet_cidr  = ["10.10.11.0/24", "10.10.12.0/24", "10.10.13.0/24"]
-  tags = {
-    "Owner"          = "ExamPro.co",
-    "BoundedContext" = "Network Fundatmentals Bootcamp"
-    "ManagedBy"      = "Terraform"
-    "Environment"    = "Staging"
-    "Region"         = "ca-central-1"
-  }
-  vpc_cidr = "10.0.0.0/16"
+  resource "aws_vpc" "network_fundamentals_vpc" {
+  cidr_block                       = local.vpc_cidr
+  enable_dns_support               = true
+  enable_dns_hostnames             = true
+  assign_generated_ipv6_cidr_block = true
+  instance_tenancy                 = "default"
+  tags                             = merge({ "Name" = format("%s VPC", local.environment_name) }, local.tags)
 }
-  // AWS Variables
 
-variable "availability_zone" {
+resource "aws_subnet" "public_subnet" {
+  for_each = local.public_subnets
+
+  vpc_id                  = aws_vpc.network_fundamentals_vpc.id
+  cidr_block              = each.value
+  availability_zone       = each.key
+  map_public_ip_on_launch = true
+
+  tags = merge({
+    "Name" = format("%s Public Subnet - %s", local.environment_name, each.key)
+  }, local.tags)
+}
+
+resource "aws_subnet" "private_subnet" {
+  for_each = local.private_subnets
+
+  vpc_id            = aws_vpc.network_fundamentals_vpc.id
+  cidr_block        = each.value
+  availability_zone = each.key
+
+  tags = merge({
+    "Name" = format("%s Private Subnet - %s", local.environment_name, each.key)
+  }, local.tags)
+}
+  variable "availability_zone" {
   description = "Availability Zone"
   type        = list(string)
   default     = ["ca-central-1a", "ca-central-1b", "ca-central-1c"]
@@ -80,23 +91,25 @@ variable "vpc_cidr" {
 
   ## Requirements
 
-| Name | Version |
-|------|---------|
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | 6.0.0-beta2 |
+No requirements.
 
   ## Providers
 
-No providers.
+| Name | Version |
+|------|---------|
+| <a name="provider_aws"></a> [aws](#provider\_aws) | n/a |
 
   ## Modules
 
-| Name | Source | Version |
-|------|--------|---------|
-| <a name="module_aws-basic-network"></a> [aws-basic-network](#module\_aws-basic-network) | ./modules/aws-basic-network | n/a |
+No modules.
 
   ## Resources
 
-No resources.
+| Name | Type |
+|------|------|
+| [aws_subnet.private_subnet](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet) | resource |
+| [aws_subnet.public_subnet](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet) | resource |
+| [aws_vpc.network_fundamentals_vpc](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc) | resource |
 
   ## Inputs
 
@@ -112,9 +125,13 @@ No resources.
 
   ## Outputs
 
-No outputs.
+| Name | Description |
+|------|-------------|
+| <a name="output_private_subnet_ids"></a> [private\_subnet\_ids](#output\_private\_subnet\_ids) | Map of AZ to private subnet IDs |
+| <a name="output_public_subnet_ids"></a> [public\_subnet\_ids](#output\_public\_subnet\_ids) | Map of AZ to public subnet IDs |
+| <a name="output_vpc_cidr_block"></a> [vpc\_cidr\_block](#output\_vpc\_cidr\_block) | The CIDR block of the VPC |
+| <a name="output_vpc_id"></a> [vpc\_id](#output\_vpc\_id) | The ID of the VPC |
+| <a name="output_vpc_ipv6_cidr_block"></a> [vpc\_ipv6\_cidr\_block](#output\_vpc\_ipv6\_cidr\_block) | The IPv6 CIDR block of the VPC |
 
   
 <!-- END_TF_DOCS -->
-## Infrastructure Diagram
-[Infrastructure Diagram](infrastructure-diagram.drawio)
