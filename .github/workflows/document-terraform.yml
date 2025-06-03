@@ -123,10 +123,21 @@ jobs:
 
     - name: Commit all generated files
       if: github.event_name != 'pull_request'
-      uses: stefanzweifel/git-auto-commit-action@v5
-      with:
-        commit_message: "docs: update terraform documentation and diagrams"
-        file_pattern: "README.md infrastructure-diagram.png"
+      run: |
+        
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+        git remote set-url origin https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}
+
+        git add README.md infrastructure-diagram.png
+
+        if git diff --staged --quiet; then
+          echo "No changes to commit"
+        else
+          git commit -m "docs: update terraform documentation and diagrams"
+          git push
+        fi
 
     - name: Upload Documentation and Diagrams
       uses: actions/upload-artifact@v4
