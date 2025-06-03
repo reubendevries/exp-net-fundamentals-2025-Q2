@@ -16,8 +16,6 @@ sections:
 content: |-
   # exp-net-fundamentals-2025-q2
 
-  {{ .Header }}
-
   ## Architecture Diagram
   
   [Draw.io Source](infrastructure-diagram.drawio)
