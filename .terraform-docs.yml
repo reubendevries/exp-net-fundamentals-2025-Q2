@@ -13,41 +13,40 @@ sections:
   hide: []
   show: []
 
-content: |-
-  # exp-net-fundamentals-2025-q2
 
-  ## Architecture Diagram
-  
-  [Draw.io Source](infrastructure-diagram.drawio)
-
-  ## Usage
-
-  ```hcl
-  {{ include "main.tf" }}
-  {{ include "variables.tf" }}
-  ```
-
-  {{ .Requirements }}
-
-  {{ .Providers }}
-
-  {{ .Modules }}
-
-  {{ .Resources }}
-
-  {{ .Inputs }}
-
-  {{ .Outputs }}
-
-  {{ .Footer }}
 
 output:
   file: ""
   mode: inject
   template: |-
     <!-- BEGIN_TF_DOCS -->
-    {{ .Content }}
+    # exp-net-fundamentals-2025-q2
+
+    ## Infrastructure Diagram
+    [Infrastructure Diagram](infrastructure-diagram.drawio)
+
+    ## Usage
+
+    ```hcl
+    {{ include "main.tf" }}
+    {{ include "variables.tf" }}
+    ```
+
+    {{ .Requirements }}
+
+    {{ .Providers }}
+
+    {{ .Modules }}
+
+    {{ .Resources }}
+
+    {{ .Inputs }}
+
+    {{ .Outputs }}
+
+    {{ .Footer }}
     <!-- END_TF_DOCS -->
+
 
 output-values:
   enabled: false
