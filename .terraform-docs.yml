@@ -28,7 +28,7 @@ content: |-
 
   ```hcl
   {{ include "main.tf" }}
-  {{ include "provider.tf "}}
+  {{ include "provider.tf" }}
   {{ include "variables.tf" }}
   
   {{ include "./modules/aws-basic-network/locals.tf" }}
