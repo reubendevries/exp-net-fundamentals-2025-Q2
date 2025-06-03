@@ -14,7 +14,7 @@ sections:
   show: []
 
 content: |-
-  # Terraform Infrastructure
+  # exp-net-fundamentals-2025-q2
 
   {{ .Header }}
 
@@ -46,7 +46,10 @@ content: |-
 output:
   file: ""
   mode: inject
-  template:
+  template: |-
+    <!-- BEGIN_TF_DOCS -->
+    {{ .content }}
+    <!-- END_TF_DOCS -->
 
 output-values:
   enabled: false
