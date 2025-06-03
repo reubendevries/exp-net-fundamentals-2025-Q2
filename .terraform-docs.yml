@@ -46,10 +46,7 @@ content: |-
 output:
   file: ""
   mode: inject
-  template: |-
-    <!-- BEGIN_TF_DOCS -->
-    {{ .Content }}
-    <!-- END_TF_DOCS -->
+  template:
 
 output-values:
   enabled: false
