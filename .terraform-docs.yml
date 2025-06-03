@@ -34,7 +34,7 @@ content: |-
   {{ include "./modules/aws-basic-network/locals.tf" }}
   {{ include "./modules/aws-basic-network/main.tf" }}
   {{ include "./modules/aws-basic-network/variables.tf" }}
-  {{ include "./modules/aws-basic-network/outputs.tf" }}
+  {{ include "./modules/aws-basic-network/output.tf" }}
   ```
 
   {{ .Requirements }}
