@@ -27,7 +27,14 @@ content: |-
   ## Usage
 
   ```hcl
-  {{ include "examples/complete/main.tf" }}
+  {{ include "main.tf" }}
+  {{ include "provider.tf "}}
+  {{ include "variables.tf" }}
+  
+  {{ include "./modules/aws-basic-network/locals.tf" }}
+  {{ include "./modules/aws-basic-network/main.tf" }}
+  {{ include "./modules/aws-basic-network/variables.tf" }}
+  {{ include "./modules/aws-basic-network/outputs.tf" }}
   ```
 
   {{ .Requirements }}
