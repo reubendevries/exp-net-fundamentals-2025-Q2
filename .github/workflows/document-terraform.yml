@@ -84,7 +84,7 @@ jobs:
         y_pos = 100
     
         if 'planned_values' in plan and 'root_module' in plan['planned_values']:
-        resources = plan['planned_values']['root_module'].get('resources', [])
+            resources = plan['planned_values']['root_module'].get('resources', [])
         
         for resource in resources:
             resource_type = resource.get('type', 'unknown')
