@@ -58,7 +58,7 @@ jobs:
     - name: Generate Terraform Docs
       run: |
         terraform-docs markdown table --output-file README.md --output-mode inject .
-        terraform-docs markdown table --output-file modules/aws-basic-network/README.md --output-mode inject ./modules/aws-basic-network
+        terraform-docs markdown table --recursive=false --output-file modules/aws-basic-network/README.md --output-mode inject ./modules/aws-basic-network --recursive=false
 
     - name: Generate Draw.io Compatible Diagram
       run: |
