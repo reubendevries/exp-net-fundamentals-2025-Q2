@@ -202,9 +202,7 @@ output:
 
 ## Architecture Diagram
 
-![Infrastructure Diagram](infrastructure-diagram.svg)
-
-[Interactive Diagram](rover-diagram.html) | [Draw.io Source](infrastructure-diagram.drawio)
+[Draw.io Source](infrastructure-diagram.drawio)
 
 ## Usage
 
