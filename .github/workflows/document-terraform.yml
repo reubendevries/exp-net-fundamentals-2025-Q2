@@ -1,0 +1,202 @@
+name: Terraform Documentation and Diagrams
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  terraform-docs:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.6.0
+
+    - name: Terraform Format Check
+      run: terraform fmt -check -recursive
+
+    - name: Terraform Init
+      run: terraform init
+
+    - name: Terraform Validate
+      run: terraform validate
+
+    - name: Generate Terraform Plan
+      run: |
+        terraform plan -out=tfplan
+        terraform show -json tfplan > tfplan.json
+
+    # Generate markdown documentation with terraform-docs
+    - name: Render terraform docs
+      uses: terraform-docs/gh-actions@v1.0.0
+      with:
+        working-dir: .
+        output-file: README.md
+        output-method: inject
+        git-push: "true"
+        git-commit-message: "docs: update terraform documentation"
+
+    # Alternative: Generate docs to separate file
+    - name: Generate terraform docs to separate file
+      uses: terraform-docs/gh-actions@v1.0.0
+      with:
+        working-dir: .
+        output-file: TERRAFORM.md
+        output-method: replace
+        config-file: .terraform-docs.yml
+
+    # Install and use Inframap for visual diagrams
+    - name: Setup Inframap
+      run: |
+        curl -sSL https://github.com/cycloidio/inframap/releases/download/v0.6.7/inframap-linux-amd64.tar.gz | tar -xz
+        sudo mv inframap-linux-amd64 /usr/local/bin/inframap
+        chmod +x /usr/local/bin/inframap
+
+    - name: Generate Infrastructure Diagram
+      run: |
+        # Generate diagram from Terraform state (if you have remote state)
+        # inframap generate --tfstate terraform.tfstate --output diagram.svg
+        
+        # Generate diagram from Terraform plan JSON
+        inframap generate --tfplan tfplan.json --output infrastructure-diagram.svg
+        
+        # Generate different formats
+        inframap generate --tfplan tfplan.json --output infrastructure-diagram.png
+        inframap generate --tfplan tfplan.json --output infrastructure-diagram.dot
+
+    # Alternative: Use Rover for interactive diagrams
+    - name: Setup Rover
+      run: |
+        wget https://github.com/im2nguyen/rover/releases/download/v0.3.3/rover_0.3.3_linux_amd64.tar.gz
+        tar -xzf rover_0.3.3_linux_amd64.tar.gz
+        sudo mv rover /usr/local/bin/
+
+    - name: Generate Interactive Diagram with Rover
+      run: |
+        rover --tfPlanFile tfplan.json --outputFile rover-diagram.html
+
+    # Setup Python for additional diagram tools
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install Python dependencies
+      run: |
+        pip install diagrams
+        pip install graphviz
+
+    # Custom Python script for Draw.io compatible diagrams
+    - name: Generate Draw.io Compatible Diagram
+      run: |
+        python << 'EOF'
+        import json
+        import xml.etree.ElementTree as ET
+        
+        # Read Terraform plan
+        with open('tfplan.json', 'r') as f:
+            plan = json.load(f)
+        
+        # Create a simple Draw.io XML structure
+        mxfile = ET.Element('mxfile', host="Electron")
+        diagram = ET.SubElement(mxfile, 'diagram', id="terraform-infrastructure", name="Infrastructure")
+        mxGraphModel = ET.SubElement(diagram, 'mxGraphModel', dx="1426", dy="834", grid="1", gridSize="10", guides="1", tooltips="1", connect="1", arrows="1", fold="1", page="1", pageScale="1", pageWidth="827", pageHeight="1169", math="0", shadow="0")
+        root = ET.SubElement(mxGraphModel, 'root')
+        
+        # Add default cells
+        ET.SubElement(root, 'mxCell', id="0")
+        ET.SubElement(root, 'mxCell', id="1", parent="0")
+        
+        # Simple example - you'd expand this based on your Terraform resources
+        cell_id = 2
+        y_pos = 100
+        
+        # Extract resources from plan
+        if 'planned_values' in plan and 'root_module' in plan['planned_values']:
+            resources = plan['planned_values']['root_module'].get('resources', [])
+            
+            for resource in resources:
+                resource_type = resource.get('type', 'unknown')
+                resource_name = resource.get('name', 'unnamed')
+                
+                cell = ET.SubElement(root, 'mxCell', 
+                    id=str(cell_id),
+                    value=f"{resource_type}\\n{resource_name}",
+                    style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;",
+                    vertex="1",
+                    parent="1"
+                )
+                
+                ET.SubElement(cell, 'mxGeometry', 
+                    x="100", 
+                    y=str(y_pos), 
+                    width="120", 
+                    height="60", 
+                    **{"as": "geometry"}
+                )
+                
+                cell_id += 1
+                y_pos += 80
+        
+        # Write the XML file
+        tree = ET.ElementTree(mxfile)
+        ET.indent(tree, space="  ", level=0)
+        tree.write('infrastructure-diagram.drawio', encoding='utf-8', xml_declaration=True)
+        
+        print("Draw.io diagram generated successfully!")
+        EOF
+
+    # Commit generated files back to repository
+    - name: Commit generated diagrams
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add *.svg *.png *.html *.drawio *.md
+        git diff --staged --quiet || git commit -m "docs: update terraform diagrams and documentation"
+        git push
+
+    # Upload artifacts for download
+    - name: Upload Documentation and Diagrams
+      uses: actions/upload-artifact@v3
+      with:
+        name: terraform-docs-and-diagrams
+        path: |
+          README.md
+          TERRAFORM.md
+          *.svg
+          *.png
+          *.html
+          *.drawio
+          *.dot
+
+  # Optional: Deploy documentation to GitHub Pages
+  deploy-docs:
+    needs: terraform-docs
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Download artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: terraform-docs-and-diagrams
+        path: ./docs
+        
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./docs
