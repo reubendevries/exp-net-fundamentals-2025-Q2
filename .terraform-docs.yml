@@ -13,32 +13,8 @@ sections:
   hide: []
   show: []
 
-content:
-  table-of-contents:
-    enabled: true
-    depth: 2
-    ordered: false
-  preface: ""
-  footer: ""
-  files:
-    - main.tf
-    - variables.tf
-  
-
-
-output:
-  file: ""
-  mode: inject
-  template: |-
-    <!-- BEGIN_TF_DOCS -->
-
-    # {{ .Name }}
-
-    {{ .Description }}
-
-    {{ .Content }}
-
-    # exp-net-fundamentals-2025-q2
+content: |-
+  # exp-net-fundamentals-2025-q2
 
     ## Infrastructure Diagram
     [Infrastructure Diagram](infrastructure-diagram.drawio)
@@ -63,6 +39,25 @@ output:
     {{ .Outputs }}
 
     {{ .Footer }}
+
+files:
+  - main.tf
+  - variables.tf
+  - requirements.tf
+  - providers.tf
+  - outputs.tf
+  - modules.tf
+  - locals.tf
+  - variables.tf
+  - README.md
+  - infrastructure-diagram.drawio
+
+output:
+  file: ""
+  mode: inject
+  template: |-
+    <!-- BEGIN_TF_DOCS -->
+    {{ .Content }}
     <!-- END_TF_DOCS -->
 
 
