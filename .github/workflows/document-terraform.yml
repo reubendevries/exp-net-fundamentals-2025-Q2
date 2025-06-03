@@ -22,9 +22,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
       with:
-        token: ${{ secrets.GITHUB_TOKEN }}
         fetch-depth: 0
-        persist-credentials: false
     
     - uses: aws-actions/configure-aws-credentials@v4
       with:
@@ -56,7 +54,7 @@ jobs:
         working-dir: .
         output-file: README.md
         output-method: inject
-        git-push: "false"
+        git-push: "true"
         git-commit-message: "docs: update terraform documentation"
 
     - name: Generate Draw.io Compatible Diagram
@@ -118,11 +116,16 @@ jobs:
         print("Draw.io diagram generated successfully!")
         EOF
 
-    - name: Commit generated diagrams and docs
-      uses: stefanzweifel/git-auto-commit-action@v5
-      with:
-        commit_message: "docs: update terraform diagrams and documentation"
-        file_pattern: 'infrastructure-diagram.drawio README.md'
+    - name: Commit generated diagrams
+      run: |
+        cp infrastructure-diagram.drawio infrastructure-diagram.drawio.tmp
+        git checkout ${GITHUB_REF#refs/heads/}
+        cp infrastructure-diagram.drawio.tmp infrastructure-diagram.drawio
+        git config --global user.name 'GitHub Actions'
+        git config --global user.email 'actions@github.com'
+        git add infrastructure-diagram.drawio
+        git diff --staged --quiet || git commit -m "docs: update terraform diagrams"
+        git push
 
     - name: Upload Documentation and Diagrams
       uses: actions/upload-artifact@v4
