@@ -10,6 +10,7 @@ permissions:
   contents: read
   pull-requests: write
   issues: write
+  id-token: write
 
 jobs:
   deploy_network_terraform:
@@ -19,6 +20,13 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: arn:aws:iam::468260221093:role/exp-net-fundamentals-deploy-gha-role
+        aws-region: ca-central-1
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
@@ -29,7 +37,7 @@ jobs:
       run: terraform init
 
     - name: Terraform Format
-      run: terraform fmt -check
+      run: terraform fmt -check -recursive
 
     - name: Terraform Validate
       run: terraform validate
@@ -38,6 +46,7 @@ jobs:
       uses: aquasecurity/tfsec-action@v1.0.0
       with:
         soft_fail: true
+        additional_args: --tfvars-file=terraform.tfvars
 
     - name: Setup Infracost
       uses: infracost/actions/setup@v3

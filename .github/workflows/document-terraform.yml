@@ -1,0 +1,155 @@
+name: Terraform Documentation and Diagrams
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write
+  pull-requests: write
+  pages: write
+  deployments: write
+
+jobs:
+  terraform-docs:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: arn:aws:iam::468260221093:role/exp-net-fundamentals-deploy-gha-role
+        aws-region: ca-central-1
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: latest
+
+    - name: Terraform Format Check
+      run: terraform fmt -check -recursive
+
+    - name: Terraform Init
+      run: terraform init
+
+    - name: Terraform Validate
+      run: terraform validate
+
+    - name: Generate Terraform Plan
+      run: |
+        terraform plan -out=tfplan
+        terraform show -json tfplan > tfplan.json
+
+    - name: Install terraform-docs
+      run: |
+        curl -sSLo ./terraform-docs.tar.gz https://terraform-docs.io/dl/v0.16.0/terraform-docs-v0.16.0-$(uname)-amd64.tar.gz
+        tar -xzf terraform-docs.tar.gz
+        chmod +x terraform-docs
+        sudo mv terraform-docs /usr/local/bin/
+    
+    - name: Generate Terraform Docs
+      run: |
+        terraform-docs markdown table --output-file README.md --output-mode inject .
+
+    - name: Generate Draw.io Compatible Diagram
+      run: |
+        python << 'EOF'
+        import json
+        import xml.etree.ElementTree as ET
+        
+        # Read Terraform plan
+        with open('tfplan.json', 'r') as f:
+            plan = json.load(f)
+        
+        # Create a simple Draw.io XML structure
+        mxfile = ET.Element('mxfile', host="Electron")
+        diagram = ET.SubElement(mxfile, 'diagram', id="terraform-infrastructure", name="Infrastructure")
+        mxGraphModel = ET.SubElement(diagram, 'mxGraphModel', dx="1426", dy="834", grid="1", gridSize="10", guides="1", tooltips="1", connect="1", arrows="1", fold="1", page="1", pageScale="1", pageWidth="827", pageHeight="1169", math="0", shadow="0")
+        root = ET.SubElement(mxGraphModel, 'root')
+        
+        # Add default cells
+        ET.SubElement(root, 'mxCell', id="0")
+        ET.SubElement(root, 'mxCell', id="1", parent="0")
+        
+        # Simple example - you'd expand this based on your Terraform resources
+        cell_id = 2
+        y_pos = 100
+        
+        # Extract resources from plan
+        if 'planned_values' in plan and 'root_module' in plan['planned_values']:
+            resources = plan['planned_values']['root_module'].get('resources', [])
+            
+            for resource in resources:
+                resource_type = resource.get('type', 'unknown')
+                resource_name = resource.get('name', 'unnamed')
+                
+                cell = ET.SubElement(root, 'mxCell', 
+                    id=str(cell_id),
+                    value=f"{resource_type}\\n{resource_name}",
+                    style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;",
+                    vertex="1",
+                    parent="1"
+                )
+                
+                ET.SubElement(cell, 'mxGeometry', 
+                    x="100", 
+                    y=str(y_pos), 
+                    width="120", 
+                    height="60", 
+                    **{"as": "geometry"}
+                )
+                
+                cell_id += 1
+                y_pos += 80
+        
+        # Write the XML file
+        tree = ET.ElementTree(mxfile)
+        ET.indent(tree, space="  ", level=0)
+        tree.write('infrastructure-diagram.drawio', encoding='utf-8', xml_declaration=True)
+        
+        print("Draw.io diagram generated successfully!")
+        EOF
+
+    - name: Commit all generated files
+      if: github.event_name != 'pull_request'
+      run: |
+        git config --global user.name 'GitHub Actions'
+        git config --global user.email 'actions@github.com'
+        git add README.md infrastructure-diagram.drawio
+        git diff --staged --quiet || git commit -m "docs: update terraform documentation and diagrams"
+        git push
+
+    - name: Upload Documentation and Diagrams
+      uses: actions/upload-artifact@v4
+      with:
+        name: terraform-docs-and-diagrams
+        path: infrastructure-diagram.drawio
+
+  deploy-docs:
+    needs: terraform-docs
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: terraform-docs-and-diagrams
+        path: ./docs
+        
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./docs
