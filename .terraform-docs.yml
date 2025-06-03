@@ -14,10 +14,8 @@ sections:
   show: []
 
 content: |-
-  # exp-net-fundamentals-2025-q2
-
     ## Infrastructure Diagram
-    [Infrastructure Diagram](infrastructure-diagram.drawio)
+    ![Infrastructure Diagram](infrastructure-diagram.png)
 
     ## Usage
 

@@ -56,71 +56,77 @@ jobs:
         output-method: inject
         git-push: "true"
 
-    - name: Generate Draw.io Compatible Diagram
+    - name: Generate Draw.io Diagram and PNG Image
       run: |
+        # Install required dependencies
+        sudo apt-get update
+        sudo apt-get install -y xvfb libappindicator1 fonts-liberation libasound2 libatk-bridge2.0-0 libatspi2.0-0 libgtk-3-0 libnspr4 libnss3 libx11-xcb1 libxss1 libxtst6 xdg-utils
+
+        wget -O /tmp/drawio.deb https://github.com/jgraph/drawio-desktop/releases/download/v21.8.2/drawio-amd64-21.8.2.deb
+        sudo dpkg -i /tmp/drawio.deb || sudo apt-get -f install -y
+  
         python << 'EOF'
         import json
         import xml.etree.ElementTree as ET
-        
-        # Read Terraform plan
+    
         with open('tfplan.json', 'r') as f:
-            plan = json.load(f)
-        
-        # Create a simple Draw.io XML structure
+          plan = json.load(f)
+    
         mxfile = ET.Element('mxfile', host="Electron")
         diagram = ET.SubElement(mxfile, 'diagram', id="terraform-infrastructure", name="Infrastructure")
         mxGraphModel = ET.SubElement(diagram, 'mxGraphModel', dx="1426", dy="834", grid="1", gridSize="10", guides="1", tooltips="1", connect="1", arrows="1", fold="1", page="1", pageScale="1", pageWidth="827", pageHeight="1169", math="0", shadow="0")
         root = ET.SubElement(mxGraphModel, 'root')
-        
-        # Add default cells
+    
         ET.SubElement(root, 'mxCell', id="0")
         ET.SubElement(root, 'mxCell', id="1", parent="0")
-        
-        # Simple example - you'd expand this based on your Terraform resources
+    
         cell_id = 2
         y_pos = 100
-        
-        # Extract resources from plan
+    
         if 'planned_values' in plan and 'root_module' in plan['planned_values']:
-            resources = plan['planned_values']['root_module'].get('resources', [])
-            
-            for resource in resources:
-                resource_type = resource.get('type', 'unknown')
-                resource_name = resource.get('name', 'unnamed')
-                
-                cell = ET.SubElement(root, 'mxCell', 
-                    id=str(cell_id),
-                    value=f"{resource_type}\\n{resource_name}",
-                    style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;",
-                    vertex="1",
-                    parent="1"
-                )
-                
-                ET.SubElement(cell, 'mxGeometry', 
-                    x="100", 
-                    y=str(y_pos), 
-                    width="120", 
-                    height="60", 
-                    **{"as": "geometry"}
-                )
-                
-                cell_id += 1
-                y_pos += 80
+        resources = plan['planned_values']['root_module'].get('resources', [])
         
-        # Write the XML file
+        for resource in resources:
+            resource_type = resource.get('type', 'unknown')
+            resource_name = resource.get('name', 'unnamed')
+            
+            cell = ET.SubElement(root, 'mxCell', 
+                id=str(cell_id),
+                value=f"{resource_type}\\n{resource_name}",
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;",
+                vertex="1",
+                parent="1"
+            )
+            
+            ET.SubElement(cell, 'mxGeometry', 
+                x="100", 
+                y=str(y_pos), 
+                width="120", 
+                height="60", 
+                **{"as": "geometry"}
+            )
+            
+            cell_id += 1
+            y_pos += 80
+
         tree = ET.ElementTree(mxfile)
         ET.indent(tree, space="  ", level=0)
         tree.write('infrastructure-diagram.drawio', encoding='utf-8', xml_declaration=True)
-        
+    
         print("Draw.io diagram generated successfully!")
         EOF
+
+        echo "Converting Draw.io file to PNG..."
+        xvfb-run --auto-servernum --server-args="-screen 0 1280x800x24" drawio --export --format png --border 20 --output infrastructure-diagram.png infrastructure-diagram.drawio
+
+        echo "Diagram conversion complete. PNG file created."
 
     - name: Commit all generated files
       if: github.event_name != 'pull_request'
       run: |
         git config --global user.name 'GitHub Actions'
         git config --global user.email 'actions@github.com'
-        git add README.md infrastructure-diagram.drawio
+        git add README.md infrastructure-diagram.png
         git diff --staged --quiet || git commit -m "docs: update terraform documentation and diagrams"
         git push
 
@@ -128,7 +134,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: terraform-docs-and-diagrams
-        path: infrastructure-diagram.drawio
+        path: infrastructure-diagram.png
 
   deploy-docs:
     needs: terraform-docs
