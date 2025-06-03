@@ -198,9 +198,8 @@ output:
     <!-- BEGIN_TF_DOCS -->
 # exp-net-fundamentals-2025-q2
 
-## Architecture Diagram
-
-[Draw.io Source](infrastructure-diagram.drawio)
+## Infrastructure Diagram
+[Infrastructure Diagram](infrastructure-diagram.drawio)
 
 ## Usage
 
