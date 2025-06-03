@@ -119,12 +119,13 @@ jobs:
         EOF
 
     - name: Commit all generated files
+      if: github.event_name != 'pull_request'
       run: |
         git config --global user.name 'GitHub Actions'
         git config --global user.email 'actions@github.com'
-        git add README.md modules/aws-basic-network/README.md infrastructure-diagram.drawio
+        git add README.md infrastructure-diagram.drawio
         git diff --staged --quiet || git commit -m "docs: update terraform documentation and diagrams"
-        git push origin HEAD:${GITHUB_REF#refs/heads/}
+        git push
 
     - name: Upload Documentation and Diagrams
       uses: actions/upload-artifact@v4
