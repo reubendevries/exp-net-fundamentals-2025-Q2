@@ -58,10 +58,10 @@ jobs:
 
     - name: Generate Draw.io Diagram and PNG Image
       run: |
-        # Install required dependencies
+        
         sudo apt-get update
-        sudo apt-get install -y xvfb libappindicator1 fonts-liberation libasound2 libatk-bridge2.0-0 libatspi2.0-0 libgtk-3-0 libnspr4 libnss3 libx11-xcb1 libxss1 libxtst6 xdg-utils
-
+        sudo apt-get install -y xvfb fonts-liberation libatk-bridge2.0-0 libatspi2.0-0 libgtk-3-0 libnspr4 libnss3 libx11-xcb1 libxss1 libxtst6 xdg-utils libasound2-dev
+        
         wget -O /tmp/drawio.deb https://github.com/jgraph/drawio-desktop/releases/download/v21.8.2/drawio-amd64-21.8.2.deb
         sudo dpkg -i /tmp/drawio.deb || sudo apt-get -f install -y
   
