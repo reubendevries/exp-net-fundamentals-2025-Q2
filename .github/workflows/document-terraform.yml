@@ -50,17 +50,12 @@ jobs:
     
     - name: Generate Infrastructure Diagram (PNG only)
       run: |
-        # Install graphviz
+
         sudo apt-get update
         sudo apt-get install -y graphviz
 
-        # Generate diagram using Terraform's native graph functionality
         echo "Generating PNG diagram with Terraform graph:"
         terraform graph | dot -Tpng -o infrastructure-diagram.png
-
-        # Verify final output
-        echo "Final diagram file size:"
-        ls -la infrastructure-diagram.png
 
     - name: Render terraform docs inside the README.md and push changes back to PR branch
       uses: terraform-docs/gh-actions@v1.4.1
@@ -72,12 +67,7 @@ jobs:
     
     - name: Clean up temporary files
       run: |
-        # Remove Terraform plan files to prevent them from being committed
         rm -f tfplan tfplan.json
-    
-        # List files in the current directory to verify
-        echo "Files in working directory after cleanup:"
-        ls -la
 
     - name: Commit changes using GitHub API
       if: github.event_name != 'pull_request'
@@ -86,13 +76,11 @@ jobs:
         script: |
           const fs = require('fs');
 
-          // Function to read file as base64
           function readFileAsBase64(filePath) {
             const content = fs.readFileSync(filePath);
             return Buffer.from(content).toString('base64');
           }
 
-          // Get current commit SHA
           const { data: refData } = await github.rest.git.getRef({
             owner: context.repo.owner,
             repo: context.repo.repo,
@@ -100,7 +88,6 @@ jobs:
           });
           const currentSha = refData.object.sha;
 
-          // Get current tree
           const { data: commitData } = await github.rest.git.getCommit({
             owner: context.repo.owner,
             repo: context.repo.repo,
@@ -108,7 +95,6 @@ jobs:
           });
           const currentTreeSha = commitData.tree.sha;
 
-          // Create blobs ONLY for README.md and infrastructure-diagram.png
           const filesToCommit = ['README.md', 'infrastructure-diagram.png'];
           const fileBlobs = [];
 
@@ -138,7 +124,6 @@ jobs:
             }
           }
 
-          // Create new tree
           const { data: newTree } = await github.rest.git.createTree({
             owner: context.repo.owner,
             repo: context.repo.repo,
@@ -146,7 +131,6 @@ jobs:
             tree: fileBlobs
           });
 
-          // Create commit
           const { data: newCommit } = await github.rest.git.createCommit({
             owner: context.repo.owner,
             repo: context.repo.repo,
@@ -160,7 +144,6 @@ jobs:
             }
           });
             
-          // Update reference
           await github.rest.git.updateRef({
             owner: context.repo.owner,
             repo: context.repo.repo,
