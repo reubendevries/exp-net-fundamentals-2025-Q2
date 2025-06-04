@@ -48,39 +48,16 @@ jobs:
         terraform plan -out=tfplan
         terraform show -json tfplan > tfplan.json
     
-    - name: Generate Infrastructure Diagram with Inframap
+    - name: Generate Infrastructure Diagram (PNG only)
       run: |
-        
-        # Install Inframap
-        wget -O inframap.tar.gz https://github.com/cycloidio/inframap/releases/download/v0.6.7/inframap-linux-amd64.tar.gz
-        tar -xzf inframap.tar.gz
-        chmod +x inframap-linux-amd64
-        sudo mv inframap-linux-amd64 /usr/local/bin/inframap
-
         # Install graphviz
         sudo apt-get update
         sudo apt-get install -y graphviz
-
-        # Check if tfplan.json exists and has content
-        echo "Checking tfplan.json file:"
-        ls -la tfplan.json
-
-        # Try generating diagram with Inframap
-        echo "Generating PNG diagram with Inframap:"
-        inframap generate --tfstate tfplan.json | dot -Tpng > infrastructure-diagram.png || echo "Inframap generation failed with exit code $?"
-
-        # Check if the file has content
-        if [ ! -s infrastructure-diagram.png ]; then
-          echo "Inframap produced empty diagram, falling back to terraform graph"
-          terraform graph | dot -Tpng > infrastructure-diagram.png
-
-          # If still empty, create a simple placeholder diagram
-          if [ ! -s infrastructure-diagram.png ]; then
-            echo "Terraform graph also failed, creating placeholder diagram"
-            echo "digraph G { subgraph cluster_0 { label = \"Infrastructure\"; style=filled; color=lightgrey; node [style=filled,color=white]; \"No resources found in plan\"; } }" | dot -Tpng > infrastructure-diagram.png
-          fi
-        fi
-
+          
+        # Generate diagram using Terraform's native graph functionality
+        echo "Generating PNG diagram with Terraform graph:"
+        terraform graph | dot -Tpng -o infrastructure-diagram.png
+          
         # Verify final output
         echo "Final diagram file size:"
         ls -la infrastructure-diagram.png
