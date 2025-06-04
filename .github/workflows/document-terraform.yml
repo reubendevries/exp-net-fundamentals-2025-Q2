@@ -67,7 +67,7 @@ jobs:
 
         # Try generating diagram with Inframap
         echo "Generating PNG diagram with Inframap:"
-        cat tfplan.json | inframap generate --tfstate - | dot -Tpng > infrastructure-diagram.png || echo "Inframap generation failed with exit code $?"
+        inframap generate --tfstate tfplan.json | dot -Tpng > infrastructure-diagram.png || echo "Inframap generation failed with exit code $?"
 
         # Check if the file has content
         if [ ! -s infrastructure-diagram.png ]; then
@@ -99,13 +99,13 @@ jobs:
       with:
         script: |
           const fs = require('fs');
-          
+
           // Function to read file as base64
           function readFileAsBase64(filePath) {
             const content = fs.readFileSync(filePath);
             return Buffer.from(content).toString('base64');
           }
-          
+
           // Get current commit SHA
           const { data: refData } = await github.rest.git.getRef({
             owner: context.repo.owner,
@@ -113,7 +113,7 @@ jobs:
             ref: `heads/${context.ref.split('/').pop()}`
           });
           const currentSha = refData.object.sha;
-          
+
           // Get current tree
           const { data: commitData } = await github.rest.git.getCommit({
             owner: context.repo.owner,
@@ -121,11 +121,11 @@ jobs:
             commit_sha: currentSha
           });
           const currentTreeSha = commitData.tree.sha;
-          
+
           // Create blobs for each file
           const filesToCommit = ['README.md', 'infrastructure-diagram.png'];
           const fileBlobs = [];
-          
+
           for (const file of filesToCommit) {
             try {
               if (fs.existsSync(file)) {
@@ -136,7 +136,7 @@ jobs:
                   content: content,
                   encoding: 'base64'
                 });
-                
+
                 fileBlobs.push({
                   path: file,
                   mode: '100644',
@@ -151,7 +151,7 @@ jobs:
               console.error(`Error processing ${file}: ${error.message}`);
             }
           }
-          
+
           // Create new tree
           const { data: newTree } = await github.rest.git.createTree({
             owner: context.repo.owner,
@@ -159,7 +159,7 @@ jobs:
             base_tree: currentTreeSha,
             tree: fileBlobs
           });
-          
+
           // Create commit
           const { data: newCommit } = await github.rest.git.createCommit({
             owner: context.repo.owner,
