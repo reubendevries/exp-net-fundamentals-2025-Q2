@@ -53,11 +53,11 @@ jobs:
         # Install graphviz
         sudo apt-get update
         sudo apt-get install -y graphviz
-          
+
         # Generate diagram using Terraform's native graph functionality
         echo "Generating PNG diagram with Terraform graph:"
         terraform graph | dot -Tpng -o infrastructure-diagram.png
-          
+
         # Verify final output
         echo "Final diagram file size:"
         ls -la infrastructure-diagram.png
@@ -69,6 +69,15 @@ jobs:
         output-file: README.md
         output-method: inject
         git-push: "true"
+    
+    - name: Clean up temporary files
+      run: |
+        # Remove Terraform plan files to prevent them from being committed
+        rm -f tfplan tfplan.json
+    
+        # List files in the current directory to verify
+        echo "Files in working directory after cleanup:"
+        ls -la
 
     - name: Commit changes using GitHub API
       if: github.event_name != 'pull_request'
@@ -99,7 +108,7 @@ jobs:
           });
           const currentTreeSha = commitData.tree.sha;
 
-          // Create blobs for each file
+          // Create blobs ONLY for README.md and infrastructure-diagram.png
           const filesToCommit = ['README.md', 'infrastructure-diagram.png'];
           const fileBlobs = [];
 
