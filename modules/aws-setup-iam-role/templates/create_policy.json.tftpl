@@ -29,7 +29,7 @@
 			],
 			"Condition": {
         "StringEquals": {
-          "aws:RequestTag/Project": "${aws:PrincipalTag/Project}"
+          "aws:RequestTag/Project": "$${aws:PrincipalTag/Project}"
         },
         "StringEquals": {
           "aws:PrincipalTag/Role": ["Deploy Role"]
