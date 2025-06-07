@@ -1,11 +1,11 @@
 output "vpc_id" {
   description = "The ID of the VPC"
-  value       = aws_vpc.network_fundamentals_vpc.id
+  value       = aws_vpc.network_vpc.id
 }
 
 output "vpc_cidr_block" {
   description = "The CIDR block of the VPC"
-  value       = aws_vpc.network_fundamentals_vpc.cidr_block
+  value       = aws_vpc.network_vpc.cidr_block
 }
 
 output "public_subnet_ids" {
@@ -20,5 +20,5 @@ output "private_subnet_ids" {
 
 output "vpc_ipv6_cidr_block" {
   description = "The IPv6 CIDR block of the VPC"
-  value       = aws_vpc.network_fundamentals_vpc.ipv6_cidr_block
+  value       = aws_vpc.network_vpc.ipv6_cidr_block
 }
