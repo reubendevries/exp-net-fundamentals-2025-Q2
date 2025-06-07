@@ -23,10 +23,10 @@ resource "aws_subnet" "public_subnet" {
 resource "aws_subnet" "private_subnet" {
   for_each = local.aws_private_subnet_map
 
-  vpc_id            = aws_vpc.network_vpc.id
-  cidr_block        = each.value
-  availability_zone = each.key
-	map_public_ip_on_launch = false
+  vpc_id                  = aws_vpc.network_vpc.id
+  cidr_block              = each.value
+  availability_zone       = each.key
+  map_public_ip_on_launch = false
 
   tags = merge({
     "Name" = format("%s-%s-private-subnet", local.environment_name, each.key)
@@ -39,20 +39,20 @@ resource "aws_internet_gateway" "internet_gateway" {
 }
 
 resource "aws_eip" "elastic_ip" {
-	for_each = local.aws_public_subnet_map
+  for_each = local.aws_public_subnet_map
 
-	tags = merge({ "Name" = format("%s-%s-nat-ip", local.environment_name, each.key) }, local.tags)
-	
-	depends_on = [aws_internet_gateway.internet_gateway]
+  tags = merge({ "Name" = format("%s-%s-nat-ip", local.environment_name, each.key) }, local.tags)
+
+  depends_on = [aws_internet_gateway.internet_gateway]
 }
 
 resource "aws_nat_gateway" "nat_gateway" {
-	for_each = local.aws_public_subnet_map
+  for_each = local.aws_public_subnet_map
 
-	subnet_id = aws_subnet.public_subnet[each.key].id
-	allocation_id = aws_eip.elastic_ip[each.key].id
-	tags = merge({ "Name" = format("%s-%s-nat-gw", local.environment_name, each.key) }, local.tags)
-	
+  subnet_id     = aws_subnet.public_subnet[each.key].id
+  allocation_id = aws_eip.elastic_ip[each.key].id
+  tags          = merge({ "Name" = format("%s-%s-nat-gw", local.environment_name, each.key) }, local.tags)
+
 }
 
 resource "aws_route_table" "public_route_table" {
@@ -67,12 +67,12 @@ resource "aws_route_table" "public_route_table" {
 }
 
 resource "aws_route_table" "private_route_table" {
-	for_each = local.aws_private_subnet_map
+  for_each = local.aws_private_subnet_map
 
   vpc_id = aws_vpc.network_vpc.id
 
   route {
-    cidr_block = "0.0.0.0/0"
+    cidr_block     = "0.0.0.0/0"
     nat_gateway_id = aws_nat_gateway.nat_gateway[each.key].id
   }
 

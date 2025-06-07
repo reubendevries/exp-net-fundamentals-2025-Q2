@@ -8,9 +8,9 @@ variable "tags" {
   description = ""
   type        = map(string)
   default = {
-    "Project" 			 = "Network Fundamentals Lab"
-    "ManagedBy"      = "Terraform"
-    "Environment"    = "Staging"
-    "Region"         = "ca-central-1"
+    "Project"     = "Network Fundamentals Lab"
+    "ManagedBy"   = "Terraform"
+    "Environment" = "Staging"
+    "Region"      = "ca-central-1"
   }
 }
