@@ -78,11 +78,11 @@ resource "aws_iam_policy" "update_policy" {
 }
 
 resource "aws_iam_policy" "vpc_flow_log_policy" {
-  name   = "${local.environment_name}-vpc-flow-log-policy"
-  policy = templatefile("${path.module}/templates/vpc_flow_log_policy.json.tftpl",{
-		account_id = local.account_id,
+  name = "${local.environment_name}-vpc-flow-log-policy"
+  policy = templatefile("${path.module}/templates/vpc_flow_log_policy.json.tftpl", {
+    account_id = local.account_id,
     region     = local.region
-	})
+  })
   tags = merge(
     {
       "Name" = format("%s-vpc-flow-log-policy", local.environment_name)
@@ -115,7 +115,7 @@ resource "aws_iam_role" "vpc_flow_log_role" {
   name               = format("%s-vpc-flow-log-role", local.environment_name)
   path               = "/"
   description        = "IAM role for VPC Flow Logs"
-  assume_role_policy = templatefile("${path.module}/templates/vpc_flow_log_trust_policy.json.tftpl",{})
+  assume_role_policy = templatefile("${path.module}/templates/vpc_flow_log_trust_policy.json.tftpl", {})
   tags = merge(
     {
       "Name" = format("%s-vpc-flow-log-role", local.environment_name)
