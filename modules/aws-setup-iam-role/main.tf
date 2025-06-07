@@ -115,7 +115,7 @@ resource "aws_iam_role" "vpc_flow_log_role" {
   name               = format("%s-vpc-flow-log-role", local.environment_name)
   path               = "/"
   description        = "IAM role for VPC Flow Logs"
-  assume_role_policy = templatefile("${path.module}/templates/vpc_flow_log_trust_policy.json.tftpl", {})
+  assume_role_policy = templatefile("${path.module}/templates/vpc_flow_log_assume_role_policy.json.tftpl", {})
   tags = merge(
     {
       "Name" = format("%s-vpc-flow-log-role", local.environment_name)
