@@ -6,8 +6,10 @@
       	"Effect": "Allow",
       	"Principal": {
         	"Service": "vpc-flow-logs.amazonaws.com"
-      	}
-      	"Action": "sts:AssumeRole"
+      	},
+      	"Action": [
+					"sts:AssumeRole"
+				]
     	}
 		]
   }
