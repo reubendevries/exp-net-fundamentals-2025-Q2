@@ -7,7 +7,7 @@ resource "aws_iam_policy" "bucket_state_policy" {
       "Name" = format(
         "%s-bucket-state-policy", local.environment_name
       )
-      "Role" = "Deployer"
+      "Role" = "Terraform State Managment"
     },
     local.tags
   )
