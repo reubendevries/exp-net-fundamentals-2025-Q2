@@ -1,12 +1,12 @@
 # AWS Variables
 variable "aws_private_subnet_map" {
-	description = "a map of all the private subnets we will be using in our aws networking"
-	type = map(string)
+  description = "a map of all the private subnets we will be using in our aws networking"
+  type        = map(string)
 }
 
 variable "aws_public_subnet_map" {
-	description = "a map of all the public subnets we will be using in our aws networking"
-	type = map(string)
+  description = "a map of all the public subnets we will be using in our aws networking"
+  type        = map(string)
 }
 
 variable "environment_name" {
