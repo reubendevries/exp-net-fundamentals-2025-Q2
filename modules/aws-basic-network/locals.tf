@@ -1,6 +1,7 @@
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
+
 locals {
   aws_region             = data.aws_region.current.name
   environment_name       = var.environment_name
@@ -8,4 +9,8 @@ locals {
   aws_public_subnet_map  = var.aws_public_subnet_map
   tags                   = var.tags
   vpc_cidr               = var.vpc_cidr
+}
+
+data "aws_iam_role" "vpc_flow_log_role" {
+  name = "${local.environment_name}-vpc-flow-log-role"
 }

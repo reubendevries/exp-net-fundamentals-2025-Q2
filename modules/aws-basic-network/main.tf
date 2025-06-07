@@ -10,14 +10,14 @@ resource "aws_vpc" "network_vpc" {
 resource "aws_subnet" "public_subnet" {
   for_each = local.aws_public_subnet_map
 
-  vpc_id                  = aws_vpc.network_vpc.id
-  cidr_block              = each.value
-  availability_zone       = each.key
-  map_public_ip_on_launch = true
+  vpc_id            = aws_vpc.network_vpc.id
+  cidr_block        = each.value
+  availability_zone = each.key
 
-  tags = merge({
-    "Name" = format("%s-%s-public-subnet", local.environment_name, each.key)
-  }, local.tags)
+  tags = merge(
+    { "Name" = format("%s-%s-public-subnet", local.environment_name, each.key) },
+    local.tags
+  )
 }
 
 resource "aws_subnet" "private_subnet" {
@@ -28,20 +28,28 @@ resource "aws_subnet" "private_subnet" {
   availability_zone       = each.key
   map_public_ip_on_launch = false
 
-  tags = merge({
-    "Name" = format("%s-%s-private-subnet", local.environment_name, each.key)
-  }, local.tags)
+  tags = merge(
+    { "Name" = format("%s-%s-private-subnet", local.environment_name, each.key) },
+    local.tags
+  )
+
 }
 
 resource "aws_internet_gateway" "internet_gateway" {
   vpc_id = aws_vpc.network_vpc.id
-  tags   = merge({ "Name" = format("%s-igw", local.environment_name) }, local.tags)
+  tags = merge(
+    { "Name" = format("%s-igw", local.environment_name) },
+    local.tags
+  )
 }
 
 resource "aws_eip" "elastic_ip" {
   for_each = local.aws_public_subnet_map
 
-  tags = merge({ "Name" = format("%s-%s-nat-ip", local.environment_name, each.key) }, local.tags)
+  tags = merge(
+    { "Name" = format("%s-%s-nat-ip", local.environment_name, each.key) },
+    local.tags
+  )
 
   depends_on = [aws_internet_gateway.internet_gateway]
 }
@@ -51,7 +59,10 @@ resource "aws_nat_gateway" "nat_gateway" {
 
   subnet_id     = aws_subnet.public_subnet[each.key].id
   allocation_id = aws_eip.elastic_ip[each.key].id
-  tags          = merge({ "Name" = format("%s-%s-nat-gw", local.environment_name, each.key) }, local.tags)
+  tags = merge(
+    { "Name" = format("%s-%s-nat-gw", local.environment_name, each.key) },
+    local.tags
+  )
 
 }
 
@@ -63,7 +74,10 @@ resource "aws_route_table" "public_route_table" {
     gateway_id = aws_internet_gateway.internet_gateway.id
   }
 
-  tags = merge({ "Name" = format("%s-public-route-table", local.environment_name) }, local.tags)
+  tags = merge(
+    { "Name" = format("%s-public-route-table", local.environment_name) },
+    local.tags
+  )
 }
 
 resource "aws_route_table" "private_route_table" {
@@ -76,7 +90,10 @@ resource "aws_route_table" "private_route_table" {
     nat_gateway_id = aws_nat_gateway.nat_gateway[each.key].id
   }
 
-  tags = merge({ "Name" = format("%s-%s-private-route-table", local.environment_name, each.key) }, local.tags)
+  tags = merge(
+    { "Name" = format("%s-%s-private-route-table", local.environment_name, each.key) },
+    local.tags
+  )
 }
 
 resource "aws_route_table_association" "public_route_table_association" {
@@ -91,4 +108,24 @@ resource "aws_route_table_association" "private_route_table_association" {
 
   subnet_id      = aws_subnet.private_subnet[each.key].id
   route_table_id = aws_route_table.private_route_table[each.key].id
+}
+
+resource "aws_cloudwatch_log_group" "vpc_flow_log_group" {
+  name              = "/aws/vpc/flow-logs/${local.environment_name}"
+  retention_in_days = 30
+  tags = merge({
+    "Name" = format("%s-vpc-flow-logs", local.environment_name) },
+    local.tags
+  )
+}
+
+resource "aws_flow_log" "vpc_flow_log" {
+  iam_role_arn    = data.aws_iam_role.vpc_flow_log_role.arn
+  log_destination = aws_cloudwatch_log_group.vpc_flow_log_group.arn
+  traffic_type    = "ALL"
+  vpc_id          = aws_vpc.network_vpc.id
+  tags = merge(
+    { "Name" = format("%s-vpc-flow-log", local.environment_name) },
+    local.tags
+  )
 }

@@ -77,6 +77,21 @@ resource "aws_iam_policy" "update_policy" {
   )
 }
 
+resource "aws_iam_policy" "vpc_flow_log_policy" {
+  name = "${local.environment_name}-vpc-flow-log-policy"
+  policy = templatefile("${path.module}/templates/vpc_flow_log_policy.json.tftpl", {
+    account_id = local.account_id,
+    region     = local.region
+  })
+  tags = merge(
+    {
+      "Name" = format("%s-vpc-flow-log-policy", local.environment_name)
+      "Role" = "Flow Logs"
+    },
+    local.tags
+  )
+}
+
 resource "aws_iam_role" "deployer_role" {
   name        = "exp-net-fundamentals-deploy-gha-role"
   path        = "/"
@@ -91,6 +106,20 @@ resource "aws_iam_role" "deployer_role" {
     {
       "Name" = "exp-net-fundamentals-deploy-gha-role"
       "Role" = "Deployer"
+    },
+    local.tags
+  )
+}
+
+resource "aws_iam_role" "vpc_flow_log_role" {
+  name               = format("%s-vpc-flow-log-role", local.environment_name)
+  path               = "/"
+  description        = "IAM role for VPC Flow Logs"
+  assume_role_policy = templatefile("${path.module}/templates/vpc_flow_log_trust_policy.json.tftpl")
+  tags = merge(
+    {
+      "Name" = format("%s-vpc-flow-log-role", local.environment_name)
+      "Role" = "Flow Logs"
     },
     local.tags
   )
@@ -121,3 +150,7 @@ resource "aws_iam_role_policy_attachment" "update_policy_attachment" {
   policy_arn = aws_iam_policy.update_policy.arn
 }
 
+resource "aws_iam_role_policy_attachment" "vpc_flow_log_policy_attachment" {
+  role       = aws_iam_role.vpc_flow_log_role.name
+  policy_arn = aws_iam_policy.vpc_flow_log_policy.arn
+}
