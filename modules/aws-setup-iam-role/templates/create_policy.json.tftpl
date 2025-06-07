@@ -19,20 +19,18 @@
 				"ec2:RunInstances"
       ],
       "Resource": [
-        "arn:aws:ec2:${region}:${account_id}:elastic-ip/*"
+        "arn:aws:ec2:${region}:${account_id}:elastic-ip/*",
 				"arn:aws:ec2:${region}:${account_id}:internet-gateway/*",
 				"arn:aws:ec2:${region}:${account_id}:route-table/*",
-				"arn:aws:ec2:${region}:${account_id}:route-table-association/*
+				"arn:aws:ec2:${region}:${account_id}:route-table-association/*",
 				"arn:aws:ec2:${region}:${account_id}:subnet/*",
 				"arn:aws:ec2:${region}:${account_id}:vpc/*",
 				"arn:aws:ec2:${region}:${account_id}:instances/*"
 			],
 			"Condition": {
         "StringEquals": {
+					"aws:PrincipalTag/Role": ["Deploy Role"],
           "aws:RequestTag/Project": "$${aws:PrincipalTag/Project}"
-        },
-        "StringEquals": {
-          "aws:PrincipalTag/Role": ["Deploy Role"]
         }
     	}
 		}
