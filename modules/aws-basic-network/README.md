@@ -5,78 +5,124 @@
 ## Usage
 
 ```hcl
-resource "aws_vpc" "network_fundamentals_vpc" {
+resource "aws_vpc" "network_vpc" {
   cidr_block                       = local.vpc_cidr
   enable_dns_support               = true
   enable_dns_hostnames             = true
   assign_generated_ipv6_cidr_block = true
   instance_tenancy                 = "default"
-  tags                             = merge({ "Name" = format("%s VPC", local.environment_name) }, local.tags)
+  tags                             = merge({ "Name" = format("%s-vpc", local.environment_name) }, local.tags)
 }
 
 resource "aws_subnet" "public_subnet" {
-  for_each = local.public_subnets
+  for_each = local.aws_public_subnet_map
 
-  vpc_id                  = aws_vpc.network_fundamentals_vpc.id
+  vpc_id                  = aws_vpc.network_vpc.id
   cidr_block              = each.value
   availability_zone       = each.key
   map_public_ip_on_launch = true
 
   tags = merge({
-    "Name" = format("%s Public Subnet - %s", local.environment_name, each.key)
+    "Name" = format("%s-%s-public-subnet", local.environment_name, each.key)
   }, local.tags)
 }
 
 resource "aws_subnet" "private_subnet" {
-  for_each = local.private_subnets
+  for_each = local.aws_private_subnet_map
 
-  vpc_id            = aws_vpc.network_fundamentals_vpc.id
-  cidr_block        = each.value
-  availability_zone = each.key
+  vpc_id                  = aws_vpc.network_vpc.id
+  cidr_block              = each.value
+  availability_zone       = each.key
+  map_public_ip_on_launch = false
 
   tags = merge({
-    "Name" = format("%s Private Subnet - %s", local.environment_name, each.key)
+    "Name" = format("%s-%s-private-subnet", local.environment_name, each.key)
   }, local.tags)
 }
-variable "availability_zone" {
-  description = "Availability Zone"
-  type        = list(string)
-  default     = ["ca-central-1a", "ca-central-1b", "ca-central-1c"]
+
+resource "aws_internet_gateway" "internet_gateway" {
+  vpc_id = aws_vpc.network_vpc.id
+  tags   = merge({ "Name" = format("%s-igw", local.environment_name) }, local.tags)
 }
 
-variable "aws_region" {
-  description = "AWS Region"
-  type        = string
-  default     = "ca-central-1"
+resource "aws_eip" "elastic_ip" {
+  for_each = local.aws_public_subnet_map
+
+  tags = merge({ "Name" = format("%s-%s-nat-ip", local.environment_name, each.key) }, local.tags)
+
+  depends_on = [aws_internet_gateway.internet_gateway]
+}
+
+resource "aws_nat_gateway" "nat_gateway" {
+  for_each = local.aws_public_subnet_map
+
+  subnet_id     = aws_subnet.public_subnet[each.key].id
+  allocation_id = aws_eip.elastic_ip[each.key].id
+  tags          = merge({ "Name" = format("%s-%s-nat-gw", local.environment_name, each.key) }, local.tags)
+
+}
+
+resource "aws_route_table" "public_route_table" {
+  vpc_id = aws_vpc.network_vpc.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.internet_gateway.id
+  }
+
+  tags = merge({ "Name" = format("%s-public-route-table", local.environment_name) }, local.tags)
+}
+
+resource "aws_route_table" "private_route_table" {
+  for_each = local.aws_private_subnet_map
+
+  vpc_id = aws_vpc.network_vpc.id
+
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.nat_gateway[each.key].id
+  }
+
+  tags = merge({ "Name" = format("%s-%s-private-route-table", local.environment_name, each.key) }, local.tags)
+}
+
+resource "aws_route_table_association" "public_route_table_association" {
+  for_each = local.aws_public_subnet_map
+
+  subnet_id      = aws_subnet.public_subnet[each.key].id
+  route_table_id = aws_route_table.public_route_table.id
+}
+
+resource "aws_route_table_association" "private_route_table_association" {
+  for_each = local.aws_private_subnet_map
+
+  subnet_id      = aws_subnet.private_subnet[each.key].id
+  route_table_id = aws_route_table.private_route_table[each.key].id
+}
+variable "aws_private_subnet_map" {
+  description = "a map of all the private subnets we will be using in our aws networking"
+  type        = map(string)
+}
+
+variable "aws_public_subnet_map" {
+  description = "a map of all the public subnets we will be using in our aws networking"
+  type        = map(string)
 }
 
 variable "environment_name" {
   description = "Name of the environment"
   type        = string
-  default     = "Networking Fundatamental Bootcamp"
-}
-
-variable "private_subnet_cidr" {
-  description = "CIDR for Private Subnet"
-  type        = list(string)
-  default     = ["10.10.21.0/24", "10.10.22.0/24", "10.10.23.0/24"]
-}
-
-variable "public_subnet_cidr" {
-  description = "CIDR for Public Subnet"
-  type        = list(string)
-  default     = ["10.10.11.0/24", "10.10.12.0/24", "10.10.13.0/24"]
+  default     = "Lab"
 }
 
 variable "tags" {
   description = ""
   type        = map(string)
   default = {
-    "Owner"          = "ExamPro.co",
-    "BoundedContext" = "Network Fundatmentals Bootcamp"
-    "ManagedBy"      = "Terraform"
-    "Environment"    = "Staging"
-    "Region"         = "ca-central-1"
+    "Project"     = "Network Fundamentals Lab"
+    "ManagedBy"   = "Terraform"
+    "Environment" = "Staging"
+    "Region"      = "ca-central-1"
   }
 }
 
@@ -105,20 +151,27 @@ No modules.
 
 | Name | Type |
 |------|------|
+| [aws_eip.elastic_ip](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eip) | resource |
+| [aws_internet_gateway.internet_gateway](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/internet_gateway) | resource |
+| [aws_nat_gateway.nat_gateway](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/nat_gateway) | resource |
+| [aws_route_table.private_route_table](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table) | resource |
+| [aws_route_table.public_route_table](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table) | resource |
+| [aws_route_table_association.private_route_table_association](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table_association) | resource |
+| [aws_route_table_association.public_route_table_association](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table_association) | resource |
 | [aws_subnet.private_subnet](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet) | resource |
 | [aws_subnet.public_subnet](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet) | resource |
-| [aws_vpc.network_fundamentals_vpc](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc) | resource |
+| [aws_vpc.network_vpc](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc) | resource |
+| [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
+| [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_availability_zone"></a> [availability\_zone](#input\_availability\_zone) | Availability Zone | `list(string)` | <pre>[<br/>  "ca-central-1a",<br/>  "ca-central-1b",<br/>  "ca-central-1c"<br/>]</pre> | no |
-| <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | AWS Region | `string` | `"ca-central-1"` | no |
-| <a name="input_environment_name"></a> [environment\_name](#input\_environment\_name) | Name of the environment | `string` | `"Networking Fundatamental Bootcamp"` | no |
-| <a name="input_private_subnet_cidr"></a> [private\_subnet\_cidr](#input\_private\_subnet\_cidr) | CIDR for Private Subnet | `list(string)` | <pre>[<br/>  "10.10.21.0/24",<br/>  "10.10.22.0/24",<br/>  "10.10.23.0/24"<br/>]</pre> | no |
-| <a name="input_public_subnet_cidr"></a> [public\_subnet\_cidr](#input\_public\_subnet\_cidr) | CIDR for Public Subnet | `list(string)` | <pre>[<br/>  "10.10.11.0/24",<br/>  "10.10.12.0/24",<br/>  "10.10.13.0/24"<br/>]</pre> | no |
-| <a name="input_tags"></a> [tags](#input\_tags) | n/a | `map(string)` | <pre>{<br/>  "BoundedContext": "Network Fundatmentals Bootcamp",<br/>  "Environment": "Staging",<br/>  "ManagedBy": "Terraform",<br/>  "Owner": "ExamPro.co",<br/>  "Region": "ca-central-1"<br/>}</pre> | no |
+| <a name="input_aws_private_subnet_map"></a> [aws\_private\_subnet\_map](#input\_aws\_private\_subnet\_map) | a map of all the private subnets we will be using in our aws networking | `map(string)` | n/a | yes |
+| <a name="input_aws_public_subnet_map"></a> [aws\_public\_subnet\_map](#input\_aws\_public\_subnet\_map) | a map of all the public subnets we will be using in our aws networking | `map(string)` | n/a | yes |
+| <a name="input_environment_name"></a> [environment\_name](#input\_environment\_name) | Name of the environment | `string` | `"Lab"` | no |
+| <a name="input_tags"></a> [tags](#input\_tags) | n/a | `map(string)` | <pre>{<br/>  "Environment": "Staging",<br/>  "ManagedBy": "Terraform",<br/>  "Project": "Network Fundamentals Lab",<br/>  "Region": "ca-central-1"<br/>}</pre> | no |
 | <a name="input_vpc_cidr"></a> [vpc\_cidr](#input\_vpc\_cidr) | CIDR for VPC | `string` | `"10.0.0.0/16"` | no |
 
 ## Outputs
