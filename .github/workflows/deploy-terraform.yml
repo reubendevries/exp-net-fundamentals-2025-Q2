@@ -28,6 +28,11 @@ jobs:
       with:
         role-to-assume: arn:aws:iam::468260221093:role/exp-net-fundamentals-deploy-gha-role
         aws-region: ca-central-1
+    
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: latest
 
     - name: Terraform Init
       run: terraform init
