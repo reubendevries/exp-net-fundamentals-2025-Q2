@@ -12,7 +12,7 @@ resource "aws_iam_policy" "bucket_state_policy" {
   tags = merge(
     {
       "Name" = format(
-        "s-bucket-state-policy", local.environment_name
+        "%s-bucket-state-policy", local.environment_name
       )
       "Role" = "Deployer"
     },
@@ -28,7 +28,7 @@ resource "aws_iam_policy" "create_policy" {
   tags = merge(
     {
       "Name" = format(
-        "s-create-policy", local.environment_name
+        "%s-create-policy", local.environment_name
       )
       "Role" = "Deployer"
     },
@@ -44,7 +44,7 @@ resource "aws_iam_policy" "delete_policy" {
   tags = merge(
     {
       "Name" = format(
-        "s-delete-policy", local.environment_name
+        "%s-delete-policy", local.environment_name
       )
       "Role" = "Deployer"
     },
@@ -60,7 +60,7 @@ resource "aws_iam_policy" "read_policy" {
   tags = merge(
     {
       "Name" = format(
-        "s-read-policy", local.environment_name
+        "%s-read-policy", local.environment_name
       )
       "Role" = "Deployer"
     },
@@ -76,7 +76,7 @@ resource "aws_iam_policy" "update_policy" {
   tags = merge(
     {
       "Name" = format(
-        "s-update-policy", local.environment_name
+        "%s-update-policy", local.environment_name
       )
       "Role" = "Deploy Role"
     },
