@@ -78,7 +78,7 @@ resource "aws_iam_policy" "update_policy" {
 }
 
 resource "aws_iam_policy" "vpc_flow_log_policy" {
-  name = "${local.environment_name}-vpc-flow-log-policy"
+  name   = "${local.environment_name}-vpc-flow-log-policy"
   policy = templatefile("${path.module}/templates/vpc_flow_log_policy.json.tftpl")
   tags = merge(
     {
