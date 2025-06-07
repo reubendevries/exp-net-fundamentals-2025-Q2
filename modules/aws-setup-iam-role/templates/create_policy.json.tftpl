@@ -1,0 +1,40 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "CreateVPC",
+      "Effect": "Allow",
+      "Action": [
+				"ec2:CreateFlowLogs",
+				"ec2:CreateInternetGateway",
+				"ec2:CreateKeyPair",
+				"ec2:CreateNatGateway",
+				"ec2:CreateNetworkAcl",
+				"ec2:CreateRouteTable",
+        "ec2:CreateRoute",
+				"ec2:CreateSecurityGroup",
+				"ec2:CreateSubnet",
+        "ec2:CreateTags",
+				"ec2:CreateVpc",
+				"ec2:RunInstances"
+      ],
+      "Resource" [
+        "arn:aws:ec2:${region}:${account_id}:elastic-ip/*"
+				"arn:aws:ec2:${region}:${account_id}:internet-gateway/*",
+				"arn:aws:ec2:${region}:${account_id}:route-table/*",
+				"arn:aws:ec2:${region}:${account_id}:route-table-association/*
+				"arn:aws:ec2:${region}:${account_id}:subnet/*",
+				"arn:aws:ec2:${region}:${account_id}:vpc/*",
+				"arn:aws:ec2:${region}:${account_id}:instances/*"
+			],
+			"Condition": {
+        "StringEquals": {
+          "aws:RequestTag/Project": "${aws:PrincipalTag/Project}"
+        },
+        "StringEquals": {
+          "aws:PrincipalTag/Role": ["Deploy Role"]
+        }
+    	}
+		}
+  ]
+}

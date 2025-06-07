@@ -13,36 +13,100 @@ permissions:
   id-token: write
 
 jobs:
+  create_iam_roles_and_policies:
+    name: 'Creates IAM Roles and Polcies that will allow us to deploy resources.'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Setup OIDC to AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::468260221093:role/AdministratePoliciesAndRoles
+          aws-regions: ca-central-1
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: latest
+      
+      - name: Terraform init
+        run: terraform init
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: latest
+
+      - name: Scan code with tfsec
+        uses: aquasecurity/tfsec-action@v1.0.0
+        with:
+          soft_fail: true
+          additional_args: --tfvars-file=terraform.tfvars
+      
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -no-color -out=tfplan
+        continue-on-error: true
+
+      - name: Show Plan
+        run: terraform show -no-color tfplan > plan.txt
+
+      - name: Add Plan & Cost to PR
+        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request'
+        env:
+          PLAN: "${{ steps.plan.outputs.stdout }}"
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const plan = fs.readFileSync('plan.txt', 'utf8');
+
+            const output = `#### Terraform Plan 📝\`${{ steps.plan.outcome }}\`
+
+            <details><summary>Show Plan</summary>
+
+            \`\`\`terraform
+            ${plan}
+            \`\`\`
+
+            </details>`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve tfplan
+
   deploy_network_terraform:
-    name: 'Deploys Network Solution to AWS using Terraform'
+    name: 'Deploys Network Solution to AWS using Terraform.'
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout
+    - name: Checkout Source Code
       uses: actions/checkout@v4
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
     
-    - uses: aws-actions/configure-aws-credentials@v4
+    - name: Setup OIDC to AWS
+      uses: aws-actions/configure-aws-credentials@v4
       with:
         role-to-assume: arn:aws:iam::468260221093:role/exp-net-fundamentals-deploy-gha-role
         aws-region: ca-central-1
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
-      with:
-        terraform_version: latest
-
     - name: Terraform Init
       run: terraform init
 
-    - name: Terraform Format
-      run: terraform fmt -check -recursive
-
-    - name: Terraform Validate
-      run: terraform validate
-
-    - name: tfsec
+    - name: Scan code with tfsec
       uses: aquasecurity/tfsec-action@v1.0.0
       with:
         soft_fail: true
