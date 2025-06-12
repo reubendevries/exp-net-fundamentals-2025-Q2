@@ -1,11 +1,11 @@
-resource "aws_iam_policy" "bucket_state_policy" {
-  policy = templatefile("${path.module}/templates/bucket_state_policy.json.tftpl", {
+resource "aws_iam_policy" "tf_bucket_state_policy" {
+  policy = templatefile("${path.module}/templates/tf_bucket_state_policy.json.tftpl", {
     bucket_name = local.bucket_name
   })
   tags = merge(
     {
       "Name" = format(
-        "%s-bucket-state-policy", local.environment_name
+        "%s-tf-bucket-state-policy", local.environment_name
       )
       "Role" = "Terraform State Managment"
     },
@@ -13,15 +13,15 @@ resource "aws_iam_policy" "bucket_state_policy" {
   )
 }
 
-resource "aws_iam_policy" "create_policy" {
-  policy = templatefile("${path.module}/templates/create_policy.json.tftpl", {
+resource "aws_iam_policy" "ec2_creation_tagging_policy" {
+  policy = templatefile("${path.module}/templates/ec2_creation_tagging_policy.json.tftpl", {
     account_id = local.account_id,
     region     = local.region
   })
   tags = merge(
     {
       "Name" = format(
-        "%s-create-policy", local.environment_name
+        "%s-ec2=creation-tagging-policy", local.environment_name
       )
       "Role" = "Deployer"
     },
@@ -29,15 +29,15 @@ resource "aws_iam_policy" "create_policy" {
   )
 }
 
-resource "aws_iam_policy" "delete_policy" {
-  policy = templatefile("${path.module}/templates/delete_policy.json.tftpl", {
+resource "aws_iam_policy" "ec2_delete_read_policy" {
+  policy = templatefile("${path.module}/templates/ec2_delete_read_policy.json.tftpl", {
     account_id = local.account_id,
     region     = local.region
   })
   tags = merge(
     {
       "Name" = format(
-        "%s-delete-policy", local.environment_name
+        "%s-ec2-delete-read-policy", local.environment_name
       )
       "Role" = "Deployer"
     },
@@ -45,15 +45,15 @@ resource "aws_iam_policy" "delete_policy" {
   )
 }
 
-resource "aws_iam_policy" "read_policy" {
-  policy = templatefile("${path.module}/templates/read_policy.json.tftpl", {
+resource "aws_iam_policy" "ec2_management_update_policy" {
+  policy = templatefile("${path.module}/templates/ec2_management_update_policy.json.tftpl", {
     account_id = local.account_id,
     region     = local.region
   })
   tags = merge(
     {
       "Name" = format(
-        "%s-read-policy", local.environment_name
+        "%s-ec2-management-update-policy", local.environment_name
       )
       "Role" = "Deployer"
     },
@@ -61,15 +61,14 @@ resource "aws_iam_policy" "read_policy" {
   )
 }
 
-resource "aws_iam_policy" "update_policy" {
-  policy = templatefile("${path.module}/templates/update_policy.json.tftpl", {
-    account_id = local.account_id,
-    region     = local.region
+resource "aws_iam_policy" "vpc_flow_logs_role_retrieval_policy" {
+  policy = templatefile("${path.module}/templates/vpc_flow_logs_role_retrieval_policy.json.tftpl", {
+    account_id = local.account_id
   })
   tags = merge(
     {
       "Name" = format(
-        "%s-update-policy", local.environment_name
+        "%s-vpc-flow-logs-role-retrieval-policy", local.environment_name
       )
       "Role" = "Deploy Role"
     },
@@ -125,29 +124,29 @@ resource "aws_iam_role" "vpc_flow_log_role" {
   )
 }
 
-resource "aws_iam_role_policy_attachment" "bucket_state_policy_attachment" {
+resource "aws_iam_role_policy_attachment" "tf_bucket_state_policy_attachment" {
   role       = aws_iam_role.deployer_role.name
-  policy_arn = aws_iam_policy.bucket_state_policy.arn
+  policy_arn = aws_iam_policy.tf_bucket_state_policy.arn
 }
 
-resource "aws_iam_role_policy_attachment" "create_policy_attachment" {
+resource "aws_iam_role_policy_attachment" "ec2_creation_tagging_policy_attachment" {
   role       = aws_iam_role.deployer_role.name
-  policy_arn = aws_iam_policy.create_policy.arn
+  policy_arn = aws_iam_policy.ec2_creation_tagging_policy.arn
 }
 
-resource "aws_iam_role_policy_attachment" "delete_policy_attachment" {
+resource "aws_iam_role_policy_attachment" "ec2_delete_read_policy_attachment" {
   role       = aws_iam_role.deployer_role.name
-  policy_arn = aws_iam_policy.delete_policy.arn
+  policy_arn = aws_iam_policy.ec2_delete_read_policy.arn
 }
 
-resource "aws_iam_role_policy_attachment" "read_policy_attachment" {
+resource "aws_iam_role_policy_attachment" "ec2_management_update_policy_attachment" {
   role       = aws_iam_role.deployer_role.name
-  policy_arn = aws_iam_policy.read_policy.arn
+  policy_arn = aws_iam_policy.ec2_management_update_policy.arn
 }
 
-resource "aws_iam_role_policy_attachment" "update_policy_attachment" {
+resource "aws_iam_role_policy_attachment" "vpc_flow_logs_role_retrieval_policy" {
   role       = aws_iam_role.deployer_role.name
-  policy_arn = aws_iam_policy.update_policy.arn
+  policy_arn = aws_iam_policy.vpc_flow_logs_role_retrieval_policy.arn
 }
 
 resource "aws_iam_role_policy_attachment" "vpc_flow_log_policy_attachment" {
