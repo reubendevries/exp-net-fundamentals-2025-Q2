@@ -8,7 +8,7 @@ resource "aws_iam_policy" "tf_bucket_state_policy" {
       "Name" = format(
         "%s-tf-bucket-state-policy", local.environment
       )
-      "Role" = "Terraform State Managment"
+      "Role" = "Deploy Role"
     },
     local.tags
   )
@@ -25,7 +25,7 @@ resource "aws_iam_policy" "ec2_creation_tagging_policy" {
       "Name" = format(
         "%s-ec2=creation-tagging-policy", local.environment
       )
-      "Role" = "Deployer"
+      "Role" = "Deploy Role"
     },
     local.tags
   )
@@ -42,7 +42,7 @@ resource "aws_iam_policy" "ec2_delete_read_policy" {
       "Name" = format(
         "%s-ec2-delete-read-policy", local.environment
       )
-      "Role" = "Deployer"
+      "Role" = "Deploy Role"
     },
     local.tags
   )
@@ -59,7 +59,7 @@ resource "aws_iam_policy" "ec2_management_update_policy" {
       "Name" = format(
         "%s-ec2-management-update-policy", local.environment
       )
-      "Role" = "Deployer"
+      "Role" = "Deploy Role"
     },
     local.tags
   )
@@ -124,7 +124,7 @@ resource "aws_iam_role" "vpc_flow_log_role" {
   tags = merge(
     {
       "Name" = format("%s-vpc-flow-log-role", local.environment)
-      "Role" = "Flow Logs"
+      "Role" = "VPC Flow Logs"
     },
     local.tags
   )
