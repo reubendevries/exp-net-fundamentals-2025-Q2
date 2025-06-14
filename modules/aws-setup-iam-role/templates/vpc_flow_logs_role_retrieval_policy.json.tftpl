@@ -7,7 +7,7 @@
       "Action": [
         "iam:GetRole"
       ],
-      "Resource": "arn:aws:iam::$${account_id}:role/Lab-vpc-flow-log-role",
+      "Resource": "arn:aws:iam::${account_id}:role/${environment}-vpc-flow-log-role",
       "Condition": {
         "StringEquals": {
           "aws:PrincipalTag/Role": "Deploy Role",

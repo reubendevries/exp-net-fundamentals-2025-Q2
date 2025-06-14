@@ -6,6 +6,7 @@
 
 ```hcl
 resource "aws_iam_policy" "tf_bucket_state_policy" {
+  name = "${local.environment_name}-tf-bucket-state-policy"
   policy = templatefile("${path.module}/templates/tf_bucket_state_policy.json.tftpl", {
     bucket_name = local.bucket_name
   })
@@ -21,6 +22,7 @@ resource "aws_iam_policy" "tf_bucket_state_policy" {
 }
 
 resource "aws_iam_policy" "ec2_creation_tagging_policy" {
+  name = "${local.environment_name}-ec2-creation-tagging-policy"
   policy = templatefile("${path.module}/templates/ec2_creation_tagging_policy.json.tftpl", {
     account_id = local.account_id,
     region     = local.region
@@ -37,6 +39,7 @@ resource "aws_iam_policy" "ec2_creation_tagging_policy" {
 }
 
 resource "aws_iam_policy" "ec2_delete_read_policy" {
+  name = "${local.environment_name}-ec2-delete-read-policy"
   policy = templatefile("${path.module}/templates/ec2_delete_read_policy.json.tftpl", {
     account_id = local.account_id,
     region     = local.region
@@ -53,6 +56,7 @@ resource "aws_iam_policy" "ec2_delete_read_policy" {
 }
 
 resource "aws_iam_policy" "ec2_management_update_policy" {
+  name = "${local.environment_name}-ec2-management-update-policy"
   policy = templatefile("${path.module}/templates/ec2_management_update_policy.json.tftpl", {
     account_id = local.account_id,
     region     = local.region
@@ -69,6 +73,7 @@ resource "aws_iam_policy" "ec2_management_update_policy" {
 }
 
 resource "aws_iam_policy" "vpc_flow_logs_role_retrieval_policy" {
+  name = "${local.environment_name}-vpc-flow-logs-role-retrieval-policy"
   policy = templatefile("${path.module}/templates/vpc_flow_logs_role_retrieval_policy.json.tftpl", {
     account_id = local.account_id
   })

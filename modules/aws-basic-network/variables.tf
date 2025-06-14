@@ -8,7 +8,7 @@ variable "aws_public_subnet_map" {
   type        = map(string)
 }
 
-variable "environment_name" {
+variable "environment" {
   description = "Name of the environment"
   type        = string
   default     = "Lab"

@@ -8,7 +8,7 @@ aws_public_subnet_map = {
   "ca-central-1b" = "10.10.12.0/24"
   "ca-central-1c" = "10.10.13.0/24"
 }
-environment_name = "Lab"
+environment = "Lab"
 tags = {
   "Owner"          = "ExamPro.co",
   "BoundedContext" = "Network Lab"
