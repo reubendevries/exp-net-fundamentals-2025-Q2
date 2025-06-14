@@ -6,14 +6,14 @@
 
 ```hcl
 resource "aws_iam_policy" "tf_bucket_state_policy" {
-  name = "${local.environment_name}-tf-bucket-state-policy"
+  name = "${local.environment}-tf-bucket-state-policy"
   policy = templatefile("${path.module}/templates/tf_bucket_state_policy.json.tftpl", {
     bucket_name = local.bucket_name
   })
   tags = merge(
     {
       "Name" = format(
-        "%s-tf-bucket-state-policy", local.environment_name
+        "%s-tf-bucket-state-policy", local.environment
       )
       "Role" = "Terraform State Managment"
     },
@@ -22,7 +22,7 @@ resource "aws_iam_policy" "tf_bucket_state_policy" {
 }
 
 resource "aws_iam_policy" "ec2_creation_tagging_policy" {
-  name = "${local.environment_name}-ec2-creation-tagging-policy"
+  name = "${local.environment}-ec2-creation-tagging-policy"
   policy = templatefile("${path.module}/templates/ec2_creation_tagging_policy.json.tftpl", {
     account_id = local.account_id,
     region     = local.region
@@ -30,7 +30,7 @@ resource "aws_iam_policy" "ec2_creation_tagging_policy" {
   tags = merge(
     {
       "Name" = format(
-        "%s-ec2=creation-tagging-policy", local.environment_name
+        "%s-ec2=creation-tagging-policy", local.environment
       )
       "Role" = "Deployer"
     },
@@ -39,7 +39,7 @@ resource "aws_iam_policy" "ec2_creation_tagging_policy" {
 }
 
 resource "aws_iam_policy" "ec2_delete_read_policy" {
-  name = "${local.environment_name}-ec2-delete-read-policy"
+  name = "${local.environment}-ec2-delete-read-policy"
   policy = templatefile("${path.module}/templates/ec2_delete_read_policy.json.tftpl", {
     account_id = local.account_id,
     region     = local.region
@@ -47,7 +47,7 @@ resource "aws_iam_policy" "ec2_delete_read_policy" {
   tags = merge(
     {
       "Name" = format(
-        "%s-ec2-delete-read-policy", local.environment_name
+        "%s-ec2-delete-read-policy", local.environment
       )
       "Role" = "Deployer"
     },
@@ -56,7 +56,7 @@ resource "aws_iam_policy" "ec2_delete_read_policy" {
 }
 
 resource "aws_iam_policy" "ec2_management_update_policy" {
-  name = "${local.environment_name}-ec2-management-update-policy"
+  name = "${local.environment}-ec2-management-update-policy"
   policy = templatefile("${path.module}/templates/ec2_management_update_policy.json.tftpl", {
     account_id = local.account_id,
     region     = local.region
@@ -64,7 +64,7 @@ resource "aws_iam_policy" "ec2_management_update_policy" {
   tags = merge(
     {
       "Name" = format(
-        "%s-ec2-management-update-policy", local.environment_name
+        "%s-ec2-management-update-policy", local.environment
       )
       "Role" = "Deployer"
     },
@@ -73,14 +73,15 @@ resource "aws_iam_policy" "ec2_management_update_policy" {
 }
 
 resource "aws_iam_policy" "vpc_flow_logs_role_retrieval_policy" {
-  name = "${local.environment_name}-vpc-flow-logs-role-retrieval-policy"
+  name = "${local.environment}-vpc-flow-logs-role-retrieval-policy"
   policy = templatefile("${path.module}/templates/vpc_flow_logs_role_retrieval_policy.json.tftpl", {
-    account_id = local.account_id
+    account_id  = local.account_id,
+    environment = local.environment
   })
   tags = merge(
     {
       "Name" = format(
-        "%s-vpc-flow-logs-role-retrieval-policy", local.environment_name
+        "%s-vpc-flow-logs-role-retrieval-policy", local.environment
       )
       "Role" = "Deploy Role"
     },
@@ -89,14 +90,14 @@ resource "aws_iam_policy" "vpc_flow_logs_role_retrieval_policy" {
 }
 
 resource "aws_iam_policy" "vpc_flow_log_policy" {
-  name = "${local.environment_name}-vpc-flow-log-policy"
+  name = "${local.environment}-vpc-flow-log-policy"
   policy = templatefile("${path.module}/templates/vpc_flow_log_policy.json.tftpl", {
     account_id = local.account_id,
     region     = local.region
   })
   tags = merge(
     {
-      "Name" = format("%s-vpc-flow-log-policy", local.environment_name)
+      "Name" = format("%s-vpc-flow-log-policy", local.environment)
       "Role" = "Flow Logs"
     },
     local.tags
@@ -123,13 +124,13 @@ resource "aws_iam_role" "deployer_role" {
 }
 
 resource "aws_iam_role" "vpc_flow_log_role" {
-  name               = format("%s-vpc-flow-log-role", local.environment_name)
+  name               = format("%s-vpc-flow-log-role", local.environment)
   path               = "/"
   description        = "IAM role for VPC Flow Logs"
   assume_role_policy = templatefile("${path.module}/templates/vpc_flow_log_assume_role_policy.json.tftpl", {})
   tags = merge(
     {
-      "Name" = format("%s-vpc-flow-log-role", local.environment_name)
+      "Name" = format("%s-vpc-flow-log-role", local.environment)
       "Role" = "Flow Logs"
     },
     local.tags
@@ -165,7 +166,7 @@ resource "aws_iam_role_policy_attachment" "vpc_flow_log_policy_attachment" {
   role       = aws_iam_role.vpc_flow_log_role.name
   policy_arn = aws_iam_policy.vpc_flow_log_policy.arn
 }
-variable "environment_name" {
+variable "environment" {
   description = "Name of the environment"
   type        = string
   default     = "Lab"
@@ -222,7 +223,7 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_environment_name"></a> [environment\_name](#input\_environment\_name) | Name of the environment | `string` | `"Lab"` | no |
+| <a name="input_environment"></a> [environment](#input\_environment) | Name of the environment | `string` | `"Lab"` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | n/a | `map(string)` | <pre>{<br/>  "Environment": "Staging",<br/>  "ManagedBy": "Terraform",<br/>  "Project": "Network Fundamentals Lab",<br/>  "Region": "ca-central-1"<br/>}</pre> | no |
 
 ## Outputs
