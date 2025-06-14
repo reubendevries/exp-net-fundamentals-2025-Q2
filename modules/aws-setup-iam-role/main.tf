@@ -91,7 +91,7 @@ resource "aws_iam_policy" "vpc_flow_log_policy" {
   tags = merge(
     {
       "Name" = format("%s-vpc-flow-log-policy", local.environment)
-      "Role" = "Flow Logs"
+      "Role" = "VPC Flow Logs"
     },
     local.tags
   )
@@ -110,7 +110,7 @@ resource "aws_iam_role" "deployer_role" {
   tags = merge(
     {
       "Name" = "exp-net-fundamentals-deploy-gha-role"
-      "Role" = "Deployer"
+      "Role" = "Deploy Role"
     },
     local.tags
   )

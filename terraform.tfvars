@@ -8,12 +8,12 @@ aws_public_subnet_map = {
   "ca-central-1b" = "10.10.12.0/24"
   "ca-central-1c" = "10.10.13.0/24"
 }
-environment = "Lab"
+environment = "staging"
 tags = {
-  "Owner"          = "ExamPro.co",
-  "BoundedContext" = "Network Lab"
-  "ManagedBy"      = "Terraform"
-  "Environment"    = "Staging"
-  "Region"         = "ca-central-1"
+  "Owner"       = "reubendevries",
+  "Project"     = "exp-net-fundatmentals"
+  "ManagedBy"   = "terraform"
+  "Environment" = "staging"
+  "Region"      = "ca-central-1"
 }
 vpc_cidr = "10.0.0.0/16"
