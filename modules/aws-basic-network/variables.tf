@@ -15,7 +15,7 @@ variable "environment" {
 }
 
 variable "tags" {
-  description = ""
+  description = "a map of our basic tags"
   type        = map(string)
   default = {
     "Project"     = "exp-net-fundatmentals"
