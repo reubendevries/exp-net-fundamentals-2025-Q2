@@ -33,11 +33,6 @@ jobs:
       
       - name: Terraform init
         run: terraform init
-      
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: latest
 
       - name: Scan code with tfsec
         uses: aquasecurity/tfsec-action@v1.0.0
