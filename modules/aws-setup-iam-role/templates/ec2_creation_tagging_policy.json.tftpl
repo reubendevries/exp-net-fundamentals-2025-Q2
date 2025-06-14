@@ -1,0 +1,46 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "EC2CreationWithTagging",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:CreateFlowLogs",
+        "ec2:CreateInternetGateway",
+        "ec2:CreateKeyPair",
+        "ec2:CreateNatGateway",
+        "ec2:CreateNetworkAcl",
+        "ec2:CreateNetworkInterface",
+        "ec2:CreateRouteTable",
+        "ec2:CreateSecurityGroup",
+        "ec2:CreateSubnet",
+        "ec2:CreateVolume",
+        "ec2:CreateVpc",
+        "ec2:RunInstances",
+        "ec2:CreateTags"
+      ],
+      "Resource": [
+        "arn:aws:ec2:${region}:${account_id}:elastic-ip/*",
+        "arn:aws:ec2:${region}:${account_id}:instances/*",
+        "arn:aws:ec2:${region}:${account_id}:internet-gateway/*",
+        "arn:aws:ec2:${region}:${account_id}:key-pair/*",
+        "arn:aws:ec2:${region}:${account_id}:natgateway/*",
+        "arn:aws:ec2:${region}:${account_id}:network-acl/*",
+        "arn:aws:ec2:${region}:${account_id}:network-interface/*",
+        "arn:aws:ec2:${region}:${account_id}:route-table/*",
+        "arn:aws:ec2:${region}:${account_id}:security-group/*",
+        "arn:aws:ec2:${region}:${account_id}:security-group-rule/*",
+        "arn:aws:ec2:${region}:${account_id}:subnet/*",
+        "arn:aws:ec2:${region}:${account_id}:volume/*",
+        "arn:aws:ec2:${region}:${account_id}:vpc/*",
+        "arn:aws:ec2:${region}:${account_id}:vpc-flow-log/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:PrincipalTag/Role": "Deploy Role",
+          "aws:RequestTag/Project": "$${aws:PrincipalTag/Project}"
+        }
+      }
+    }
+  ]
+}

@@ -3,6 +3,12 @@ name: Create Deployment IAM Roles and Policies
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  id-token: write
+
 jobs:
   create_iam_roles_and_policies:
     name: 'Creates IAM Roles and Polcies that will allow us to deploy resources.'
@@ -27,11 +33,6 @@ jobs:
       
       - name: Terraform init
         run: terraform init
-      
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: latest
 
       - name: Scan code with tfsec
         uses: aquasecurity/tfsec-action@v1.0.0

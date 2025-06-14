@@ -9,21 +9,20 @@ variable "aws_public_subnet_map" {
   type        = map(string)
 }
 
-variable "environment_name" {
+variable "environment" {
   description = "Name of the environment"
   type        = string
   default     = "Lab"
 }
 
 variable "tags" {
-  description = "The tags we'll be enfocring on our resources."
+  description = "a map of our basic tags"
   type        = map(string)
   default = {
-    "Owner"          = "ExamPro.co",
-    "BoundedContext" = "Network Lab"
-    "ManagedBy"      = "Terraform"
-    "Environment"    = "Staging"
-    "Region"         = "ca-central-1"
+    "Project"     = "exp-net-fundatmentals"
+    "ManagedBy"   = "terraform"
+    "Environment" = "staging"
+    "Region"      = "ca-central-1"
   }
 }
 

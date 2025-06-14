@@ -7,7 +7,7 @@ modules/aws-setup-iam-role/README.md updated successfully
   # variables
   aws_private_subnet_map = var.aws_private_subnet_map
   aws_public_subnet_map  = var.aws_public_subnet_map
-  environment_name       = var.environment_name
+  environment            = var.environment
   vpc_cidr               = var.vpc_cidr
 }
 
@@ -15,8 +15,8 @@ module "aws_setup_iam_role" {
   # source
   source = "./modules/aws-setup-iam-role"
   # inputs
-  environment_name = var.environment_name
-  tags             = var.tags
+  environment = var.environment
+  tags        = var.tags
 }
 # AWS Variables
 variable "aws_private_subnet_map" {
@@ -29,7 +29,7 @@ variable "aws_public_subnet_map" {
   type        = map(string)
 }
 
-variable "environment_name" {
+variable "environment" {
   description = "Name of the environment"
   type        = string
   default     = "Lab"
@@ -82,7 +82,7 @@ No resources.
 |------|-------------|------|---------|:--------:|
 | <a name="input_aws_private_subnet_map"></a> [aws\_private\_subnet\_map](#input\_aws\_private\_subnet\_map) | a map of all the private subnets we will be using in our aws networking | `map(string)` | n/a | yes |
 | <a name="input_aws_public_subnet_map"></a> [aws\_public\_subnet\_map](#input\_aws\_public\_subnet\_map) | a map of all the public subnets we will be using in our aws networking | `map(string)` | n/a | yes |
-| <a name="input_environment_name"></a> [environment\_name](#input\_environment\_name) | Name of the environment | `string` | `"Lab"` | no |
+| <a name="input_environment"></a> [environment](#input\_environment) | Name of the environment | `string` | `"Lab"` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | The tags we'll be enfocring on our resources. | `map(string)` | <pre>{<br/>  "BoundedContext": "Network Lab",<br/>  "Environment": "Staging",<br/>  "ManagedBy": "Terraform",<br/>  "Owner": "ExamPro.co",<br/>  "Region": "ca-central-1"<br/>}</pre> | no |
 | <a name="input_vpc_cidr"></a> [vpc\_cidr](#input\_vpc\_cidr) | CIDR for VPC | `string` | `"10.0.0.0/16"` | no |
 

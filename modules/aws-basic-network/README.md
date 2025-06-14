@@ -11,7 +11,7 @@ resource "aws_vpc" "network_vpc" {
   enable_dns_hostnames             = true
   assign_generated_ipv6_cidr_block = true
   instance_tenancy                 = "default"
-  tags                             = merge({ "Name" = format("%s-vpc", local.environment_name) }, local.tags)
+  tags                             = merge({ "Name" = format("%s-vpc", local.environment) }, local.tags)
 }
 
 resource "aws_subnet" "public_subnet" {
@@ -22,7 +22,7 @@ resource "aws_subnet" "public_subnet" {
   availability_zone = each.key
 
   tags = merge(
-    { "Name" = format("%s-%s-public-subnet", local.environment_name, each.key) },
+    { "Name" = format("%s-%s-public-subnet", local.environment, each.key) },
     local.tags
   )
 }
@@ -36,7 +36,7 @@ resource "aws_subnet" "private_subnet" {
   map_public_ip_on_launch = false
 
   tags = merge(
-    { "Name" = format("%s-%s-private-subnet", local.environment_name, each.key) },
+    { "Name" = format("%s-%s-private-subnet", local.environment, each.key) },
     local.tags
   )
 
@@ -45,7 +45,7 @@ resource "aws_subnet" "private_subnet" {
 resource "aws_internet_gateway" "internet_gateway" {
   vpc_id = aws_vpc.network_vpc.id
   tags = merge(
-    { "Name" = format("%s-igw", local.environment_name) },
+    { "Name" = format("%s-igw", local.environment) },
     local.tags
   )
 }
@@ -54,7 +54,7 @@ resource "aws_eip" "elastic_ip" {
   for_each = local.aws_public_subnet_map
 
   tags = merge(
-    { "Name" = format("%s-%s-nat-ip", local.environment_name, each.key) },
+    { "Name" = format("%s-%s-nat-ip", local.environment, each.key) },
     local.tags
   )
 
@@ -67,7 +67,7 @@ resource "aws_nat_gateway" "nat_gateway" {
   subnet_id     = aws_subnet.public_subnet[each.key].id
   allocation_id = aws_eip.elastic_ip[each.key].id
   tags = merge(
-    { "Name" = format("%s-%s-nat-gw", local.environment_name, each.key) },
+    { "Name" = format("%s-%s-nat-gw", local.environment, each.key) },
     local.tags
   )
 
@@ -82,7 +82,7 @@ resource "aws_route_table" "public_route_table" {
   }
 
   tags = merge(
-    { "Name" = format("%s-public-route-table", local.environment_name) },
+    { "Name" = format("%s-public-route-table", local.environment) },
     local.tags
   )
 }
@@ -98,7 +98,7 @@ resource "aws_route_table" "private_route_table" {
   }
 
   tags = merge(
-    { "Name" = format("%s-%s-private-route-table", local.environment_name, each.key) },
+    { "Name" = format("%s-%s-private-route-table", local.environment, each.key) },
     local.tags
   )
 }
@@ -118,10 +118,10 @@ resource "aws_route_table_association" "private_route_table_association" {
 }
 
 resource "aws_cloudwatch_log_group" "vpc_flow_log_group" {
-  name              = "/aws/vpc/flow-logs/${local.environment_name}"
+  name              = "/aws/vpc/flow-logs/${local.environment}"
   retention_in_days = 30
   tags = merge({
-    "Name" = format("%s-vpc-flow-logs", local.environment_name) },
+    "Name" = format("%s-vpc-flow-logs", local.environment) },
     local.tags
   )
 }
@@ -132,7 +132,7 @@ resource "aws_flow_log" "vpc_flow_log" {
   traffic_type    = "ALL"
   vpc_id          = aws_vpc.network_vpc.id
   tags = merge(
-    { "Name" = format("%s-vpc-flow-log", local.environment_name) },
+    { "Name" = format("%s-vpc-flow-log", local.environment) },
     local.tags
   )
 }
@@ -146,7 +146,7 @@ variable "aws_public_subnet_map" {
   type        = map(string)
 }
 
-variable "environment_name" {
+variable "environment" {
   description = "Name of the environment"
   type        = string
   default     = "Lab"
@@ -210,7 +210,7 @@ No modules.
 |------|-------------|------|---------|:--------:|
 | <a name="input_aws_private_subnet_map"></a> [aws\_private\_subnet\_map](#input\_aws\_private\_subnet\_map) | a map of all the private subnets we will be using in our aws networking | `map(string)` | n/a | yes |
 | <a name="input_aws_public_subnet_map"></a> [aws\_public\_subnet\_map](#input\_aws\_public\_subnet\_map) | a map of all the public subnets we will be using in our aws networking | `map(string)` | n/a | yes |
-| <a name="input_environment_name"></a> [environment\_name](#input\_environment\_name) | Name of the environment | `string` | `"Lab"` | no |
+| <a name="input_environment"></a> [environment](#input\_environment) | Name of the environment | `string` | `"Lab"` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | n/a | `map(string)` | <pre>{<br/>  "Environment": "Staging",<br/>  "ManagedBy": "Terraform",<br/>  "Project": "Network Fundamentals Lab",<br/>  "Region": "ca-central-1"<br/>}</pre> | no |
 | <a name="input_vpc_cidr"></a> [vpc\_cidr](#input\_vpc\_cidr) | CIDR for VPC | `string` | `"10.0.0.0/16"` | no |
 

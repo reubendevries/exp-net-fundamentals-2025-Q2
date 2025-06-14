@@ -13,7 +13,9 @@ permissions:
   id-token: write
 
 jobs:
+  
   deploy_network_terraform:
+    if: ${{ !contains(github.event.head_commit.message, '--ci-skip') }}
     name: 'Deploys Network Solution to AWS using Terraform.'
     runs-on: ubuntu-latest
     
